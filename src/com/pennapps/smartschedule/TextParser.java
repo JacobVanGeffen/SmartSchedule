@@ -16,8 +16,8 @@ public class TextParser {
     public static final String[] eventNamePostMarkers = { "on", "due", },
             eventNamePreMarkers = { "have", "there's", "got", "hey", "schedule" },
             deadlinePreMarkers = { "due", "finish by", "on" },
-            deadlineTimeMarkers = { "at", "after" }, 
-            durationPreMarkers = { "takes", "lasts", "for", "spend" };
+            deadlineTimeMarkers = { "at", "after" }, durationPreMarkers = {
+                    "takes", "lasts", "for", "spend" };
 
     public static ScheduledEvent getScheduledEvent(ArrayList<String> speech) {
         double maxScore = 0;
@@ -51,7 +51,7 @@ public class TextParser {
 
     public static ScheduledEvent getScheduledEvent(String speech) {
         speech = speech.toLowerCase();
-        
+
         String name = null, deadline = null, duration = null;
         ScheduledEvent event;
 
@@ -107,6 +107,8 @@ public class TextParser {
      * 
      * Time zone seems to be messed up
      * 
+     * TODO account for "on the 15th" w/o given month (assume current)
+     * 
      * @param deadline
      * @return
      */
@@ -114,8 +116,8 @@ public class TextParser {
         Log.wtf("Deadline", deadline);
         DateTime ret = DateTime.now(), orig = ret;
 
-        Log.wtf("orig", orig+"");
-        
+        Log.wtf("orig", orig + "");
+
         deadline = deadline.toLowerCase().trim();
 
         if (deadline.contains("tomorrow")) {
@@ -149,23 +151,32 @@ public class TextParser {
         }
 
         if (hour(deadline) != -1) {
+            if (orig.getHourOfDay() > hour(deadline))
+                ret = ret.plusDays(1);
             ret = ret.withHourOfDay(hour(deadline)).withMinuteOfHour(0)
                     .withSecondOfMinute(0);
         }
 
-        if (weekDay(deadline) != -1){
-            Log.wtf("Day", orig .getDayOfWeek()+" "+weekDay(deadline));
-            if(orig.getDayOfWeek() >= weekDay(deadline))
-                ret = ret.plusDays(7);
+        if (weekDay(deadline) != -1) {
+            if (orig.getDayOfWeek() >= weekDay(deadline))
+                ret = ret.plusWeeks(1);
             ret = ret.withDayOfWeek(weekDay(deadline));
         }
 
-        if (month(deadline) != -1 && monthDay(deadline) != -1)
-            ret = ret.withMonthOfYear(month(deadline)).withDayOfMonth(
-                    monthDay(deadline));
+        if (month(deadline) != -1) {
+            if (orig.getMonthOfYear() > month(deadline))
+                ret = ret.plusYears(1);
+            ret = ret.withMonthOfYear(month(deadline));
+        }
 
-        Log.wtf("ret", ret+"");
-        
+        if (monthDay(deadline) != -1) {
+            if (orig.getDayOfMonth() > monthDay(deadline))
+                ret = ret.plusMonths(1);
+            ret = ret.withDayOfMonth(monthDay(deadline));
+        }
+
+        Log.wtf("ret", ret + "");
+
         return ret.equals(orig) ? null : ret;
     }
 
@@ -174,8 +185,8 @@ public class TextParser {
      */
     private static int weekDay(String str) {
         str = str.toLowerCase();
-        String[] days = { "monday", "tuesday", "wednesday",
-                "thursday", "friday", "saturday", "sunday" };
+        String[] days = { "monday", "tuesday", "wednesday", "thursday",
+                "friday", "saturday", "sunday" };
         for (int a = 0; a < days.length; a++)
             if (str.contains(days[a]))
                 return a + 1;
@@ -203,24 +214,27 @@ public class TextParser {
     private static int monthDay(String str) {
         str = str.toLowerCase();
         for (int a = 31; a > 0; a--)
-            if (str.matches(".*\\D?"+a+"[a-z]{2}.*"))
+            if (str.matches(".*\\D?" + a + "[a-z]{2}.*"))
                 return a;
         Log.wtf("month day", "fucked");
         return -1;
     }
 
     /**
-     * @return Index of month, -1 if str isn't a month
+     * @return Index of hour, -1 if str isn't an hour
      */
     private static int hour(String str) {
         str = str.toLowerCase();
         for (int a = 12; a > 0; a--)
-            if (str.matches(".*\\D?"+a+"\\D?.*"))
-                return str.contains("p.m.") ? a%12 + 12 : a%12;
+            if (str.matches(".*\\D?" + a + "\\D?.*"))
+                return str.contains("p.m.") ? a % 12 + 12 : a % 12;
         Log.wtf("hour", "fucked");
         return -1;
     }
 
+    /**
+     * @return The integer within this string
+     */
     private static int num(String str) {
         try {
             return Integer.parseInt(str.replaceAll("\\D", ""));
