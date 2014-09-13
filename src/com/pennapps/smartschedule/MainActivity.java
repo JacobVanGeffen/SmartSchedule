@@ -1,6 +1,11 @@
 package com.pennapps.smartschedule;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
+
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -16,6 +21,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.pennapps.smartschedule.scheduler.Event;
 import com.pennapps.smartschedule.scheduler.EventFetcher;
@@ -24,6 +31,7 @@ import com.pennapps.smartschedule.scheduler.RollingScheduler;
 import com.pennapps.smartschedule.scheduler.ScheduledEvent;
 import com.pennapps.smartschedule.scheduler.SchedulingCalendar;
 import com.pennapps.smartschedule.scheduler.SchedulingSettings;
+import com.pennapps.smartschedule.storage.StorageUtil;
 
 public class MainActivity extends Activity {
 
@@ -56,6 +64,14 @@ public class MainActivity extends Activity {
 
         findViewById(R.id.rlAddTask).setOnClickListener(listener);
     }
+    
+    private void loadRecentTasks(){
+        LinearLayout layout = (LinearLayout) findViewById(R.id.llRecentTasks);
+        for (String task : StorageUtil.getRecentTasks(this)){
+            TextView taskView = new TextView(this);
+            taskView.setText(task);
+        }
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -68,11 +84,20 @@ public class MainActivity extends Activity {
             
             ScheduledEvent scheduledEvent = TextParser.getScheduledEvent(data
                     .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS));
-
+            
             EventFetcher fetch = new EventFetcher(getContentResolver());
             fetch.getCalendarID();
             SchedulingCalendar cal = fetch.getCalendar();
+            
+            // check presets
+            if(scheduledEvent.getDuration() == null){
+                scheduledEvent.setDuration(getDuration(
+                        cal.getEvents(DateTime.now().minusWeeks(4),
+                                DateTime.now()), scheduledEvent.getName()));
+            }
 
+            
+            
             Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
                     new SchedulingSettings());
             cal.addEvent(event);
@@ -96,11 +121,13 @@ public class MainActivity extends Activity {
     }
     
     private void putEvent(Event event){
+        StorageUtil.putDuration(this, event.getName(), Period
+                .millis((int) (event.getEnd().getMillis() - event.getStart().getMillis())));
         startActivityForResult(EventPusher.insertEvent(event), RESULT_EVENTPUSHED);
     }
 
     private static final String[] options = { "Set Google account", // vals = ______@gmail.com
-            "Set max task time per day", // max time per day per task: vals = 1.0, 1.5, 2.0, ... , 24.0
+            "Set max task time per day", // max time per day per task: vals = 0.5, 1.0, 1.5, 2.0, ... , 24.0
             "Set laziness" }; // vals = Proactive, Balanced, Procrastinate
     
     @Override
@@ -130,6 +157,15 @@ public class MainActivity extends Activity {
             if(options[a].equals(option))
                 return a;
         return -1;
+    }
+    
+    private static Period getDuration(List<Event> events, String event){
+        Collections.reverse(events);
+        for(Event e : events){
+            if(e.getName().equals(event))
+                return Period.millis((int) (e.getEnd().getMillis() - e.getStart().getMillis()));
+        }
+        return null;
     }
     
 }
