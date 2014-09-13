@@ -2,24 +2,17 @@ package com.pennapps.smartschedule.scheduler;
 
 import java.util.List;
 
+import org.joda.time.Period;
+
 public class DailySettings {
 	private List<Event> staticEvents;
-	private int requestedFreeBlocks;
+	private Period requestedFreeTime;
 	
-	public DailySettings(List<Event> statics, int freeBlocks) {
+	public DailySettings(List<Event> statics, Period freeTime) {
 		staticEvents = statics;
-		requestedFreeBlocks = freeBlocks;
 	}
 	
 	public List<Event> getStaticEvents() {
 		return staticEvents;
-	}
-	
-	public List<EventOccurence> getOccurences(Day actualDay) {
-//		List<EventOccurence>
-		for(Event event : staticEvents) {
-			
-		}
-		return null;
 	}
 }

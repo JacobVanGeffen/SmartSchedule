@@ -1,5 +1,5 @@
 package com.pennapps.smartschedule.scheduler;
 
-public class SchedulerSettings {
+public class SchedulingSettings {
 	
 }

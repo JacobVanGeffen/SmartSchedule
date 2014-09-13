@@ -38,6 +38,13 @@ public class SchedulingCalendar {
 		events = new TreeSet<Event>(other.events);
 	}
 	
+	public Period lookupDuration(String eventName) {
+		for(Event evnt : events) {
+			if(evnt.getName().equals(eventName))
+				return new Period(evnt.getStart(), evnt.getEnd());
+		}
+	}
+	
 	public void updateEvent(Event evnt) {
 		events.remove(evnt);
 		events.add(evnt);
