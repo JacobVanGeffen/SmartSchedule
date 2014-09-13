@@ -9,5 +9,7 @@
 	<classpathentry kind="lib" path="libs/google-api-client-android-1.19.0.jar"/>
 	<classpathentry kind="lib" path="libs/google-api-services-calendar-v3-rev95-1.19.0-javadoc.jar"/>
 	<classpathentry kind="lib" path="libs/google-http-client-android-1.19.0.jar"/>
-	<classpathentry kind="output" path="bin/classes"/>
+	<classpathentry kind="lib" path="libs/joda-time-2.4-javadoc.jar"/>
+	<classpathentry kind="lib" path="libs/google-play-services.jar"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
