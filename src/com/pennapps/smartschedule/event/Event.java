@@ -27,6 +27,10 @@ public class Event {
 		fullMetadata = new EventMetadata();
 	}
 	
+	public EventOccurence singleton() {
+		return new EventOccurence(this, true);
+	}
+	
 	public long getID() {
 		return eventID;
 	}

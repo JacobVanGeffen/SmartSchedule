@@ -10,12 +10,22 @@ import org.joda.time.Interval;
 import org.joda.time.Period;
 
 public class Calendar {
-	public static int getBlocks(Interval interval, int intervalWidth) {
-		return (int) (interval.toDurationMillis() / 60000L / intervalWidth);
+	public static int INTERVAL_WIDTH = 15;
+	
+	public static int getBlocks(Interval interval) {
+		return (int) (interval.toDurationMillis() / 60000L / INTERVAL_WIDTH);
 	}
 	
-	public static int getBlocks(Period period, int intervalWidth) {
-		return (int) (period.toStandardMinutes().getMinutes() / intervalWidth);
+	public static int getBlocks(Period period) {
+		return (int) (period.toStandardMinutes().getMinutes() / INTERVAL_WIDTH);
+	}
+	
+	public static int countAvailable(List<Interval> intervals) {
+		int total = 0;
+		for(Interval intv : intervals)
+			total += Calendar.getBlocks(intv);
+		
+		return total;
 	}
 	
 	private TreeSet<EventOccurence> events;
@@ -45,11 +55,12 @@ public class Calendar {
 		return events.contains(evnt);
 	}
 	
-	public List<EventOccurence> getOccurences(DateTime day) {
-		DateTime start = day.withTimeAtStartOfDay();
-		DateTime end = day.plusDays(1).withTimeAtStartOfDay(); // End of the day or start of next day.
-		
-		return getOccurences(start, end);
+	public List<EventOccurence> getOccurences(Day day) {		
+		return getOccurences(day.getStart(), day.getEnd());
+	}
+	
+	public List<Interval> getAvailableIntervals(Day day) {
+		return getAvailableIntervals(day.getStart(), day.getEnd());
 	}
 	
 	public List<Interval> getAvailableIntervals(DateTime start, DateTime end) {
