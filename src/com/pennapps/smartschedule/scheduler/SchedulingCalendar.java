@@ -10,6 +10,8 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
+import android.util.Log;
+
 public class SchedulingCalendar {
 	public static int INTERVAL_WIDTH = 15;
 	
@@ -29,10 +31,12 @@ public class SchedulingCalendar {
 		return total;
 	}
 	
+	private long calendarID;
 	private TreeSet<Event> events;
 
-	public SchedulingCalendar() {
+	public SchedulingCalendar(long calID) {
 		events = new TreeSet<Event>();
+		calendarID = calID;
 	}
 	
 	public SchedulingCalendar(SchedulingCalendar other) {
@@ -54,6 +58,8 @@ public class SchedulingCalendar {
 	
 	public void addEvent(Event evnt) {
 		events.add(evnt);
+		evnt.setCalendarID(calendarID);
+		Log.wtf("Event Added", "An event was added to the calendar.");
 	}
 	
 	public boolean removeEvent(Event evnt) {
@@ -68,6 +74,10 @@ public class SchedulingCalendar {
 		return getEvents(day.getStart(), day.getEnd());
 	}
 	
+	public long getCalendarID() {
+	    return calendarID;
+	}
+	
 	public List<Interval> getAvailableIntervals(Day day) {
 		return getAvailableIntervals(day.getUseStart(), day.getUseEnd());
 	}
@@ -78,6 +88,7 @@ public class SchedulingCalendar {
 		
 		if(events.size() == 0) {
 			ints.add(new Interval(start, end));
+			Log.wtf("RollingScheduler emtpy", "EMPTY!");
 			return ints;
 		}
 		
@@ -105,6 +116,8 @@ public class SchedulingCalendar {
 			}
 		}
 		
+		Log.wtf("SchedulingCalendar last", "" + current.toDurationMillis());
+		
 		if(current.getEnd().compareTo(end) < 0)
 			ints.add(new Interval(current.getEnd(), end));
 		
@@ -116,7 +129,10 @@ public class SchedulingCalendar {
 		Interval time = new Interval(start, end);
 		
 		for(Event evnt : events) {
-			if(new Interval(evnt.getStart(), evnt.getEnd()).overlaps(time))
+		    Log.wtf("SchedulingCalendar listEvent", "" + evnt);
+		    
+		    Interval eventInterval = new Interval(evnt.getStart(), evnt.getEnd());
+		    if(eventInterval.overlaps(time) || time.overlaps(eventInterval))
 				occ.add(evnt);
 		}
 		

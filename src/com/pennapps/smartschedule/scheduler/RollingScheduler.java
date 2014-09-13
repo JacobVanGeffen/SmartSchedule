@@ -7,6 +7,8 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
+import android.util.Log;
+
 public class RollingScheduler {
 	
 	public static List<Interval> getScheduleIntervals(SchedulingCalendar calendar, Day start, ScheduledEvent nextEvent, SchedulingSettings settings) {
@@ -22,6 +24,8 @@ public class RollingScheduler {
 			DateTime dailyStop = new DateTime(Math.min(current.getUseEnd().getMillis(), nextEvent.getDeadline().getMillis()));
 			
 			List<Interval> intervals = calendar.getAvailableIntervals(dailyStart, dailyStop); // TODO: Be the events deadline.
+			for(Interval ints : intervals)
+			    Log.wtf("RollingScheduler getScheduleIntervals", "" + ints.toDurationMillis());
 			for(Interval i : intervals) {
 				if(i.toPeriod().getMillis() >= nextEvent.getDuration().getMillis())
 				{
@@ -40,6 +44,8 @@ public class RollingScheduler {
 	
 	public static Event scheduleFirst(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
 		List<Interval> intervals = getScheduleIntervals(calendar, start, event, settings);
+		for(Interval in : intervals)
+		    Log.wtf("RollingScheduler", "" + in.toDurationMillis());
 		DateTime realStart = intervals.get(0).getStart();
 		
 		Event realEvent = new Event(-1L, event.getName(), realStart, realStart.plus(event.getDuration()));

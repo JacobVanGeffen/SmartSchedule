@@ -51,7 +51,7 @@ public class ExampleActivity extends Activity {
                 
                 EventFetcher fetch = new EventFetcher(getContentResolver());
                 fetch.getCalendarID();
-                SchedulingCalendar cal = fetch.getCalendar(DateTime.now().minus(Period.weeks(4)));
+                SchedulingCalendar cal = fetch.getCalendar();
                 
                 System.out.println("Have the scheduling calendar: " + cal);
                 
@@ -68,9 +68,10 @@ public class ExampleActivity extends Activity {
             
             EventFetcher fetch = new EventFetcher(getContentResolver());
             fetch.getCalendarID();
-            SchedulingCalendar cal = fetch.getCalendar(DateTime.now().minus(Period.weeks(4)));
+            SchedulingCalendar cal = fetch.getCalendar();
             
             Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent, new SchedulingSettings());
+            cal.addEvent(event);
             
             System.out.println("The thing was scheduled.");
             putEvent(event);

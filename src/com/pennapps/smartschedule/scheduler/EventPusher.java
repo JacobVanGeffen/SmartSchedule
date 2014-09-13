@@ -7,6 +7,7 @@ import android.provider.CalendarContract.Events;
 public class EventPusher {
 	public static Intent insertEvent(Event event) {
 		Intent intent = new Intent(Intent.ACTION_INSERT).setData(Events.CONTENT_URI)
+		            .putExtra(Events.CALENDAR_ID, event.getCalendarID())
 					.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, event.getStart().getMillis())
 					.putExtra(CalendarContract.EXTRA_EVENT_END_TIME, event.getEnd().getMillis())
 					.putExtra(Events.TITLE, event.getName())
