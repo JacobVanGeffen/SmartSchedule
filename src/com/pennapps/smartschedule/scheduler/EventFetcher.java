@@ -1,17 +1,11 @@
 package com.pennapps.smartschedule.scheduler;
 
 import org.joda.time.DateTime;
-import org.joda.time.Period;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
-
-import com.pennapps.smartschedule.event.Event;
-import com.pennapps.smartschedule.event.EventMetadata;
-import com.pennapps.smartschedule.event.EventOccurence;
-import com.pennapps.smartschedule.event.SchedulingCalendar;
 
 public class EventFetcher {
 	public static String TEST_ACCOUNT = "blacksmithgu@gmail.com";
@@ -28,6 +22,7 @@ public class EventFetcher {
 	};
 	
 	public static final String[] EVENT_PROJECTION = new String[] {
+		Events._ID,
 		Events.TITLE,
 		Events.EVENT_LOCATION,
 		Events.DESCRIPTION,
@@ -70,14 +65,9 @@ public class EventFetcher {
 			DateTime start = new DateTime(cur.getLong(3));
 			DateTime end = new DateTime(cur.getLong(4));
 			
-			EventMetadata meta = new EventMetadata();
-			meta.setStart(new DateTime(cur.getLong(3)));
-			meta.setDuration(new Period(start, end));
+			Event evnt = new Event(cur.getLong(0), cur.getString(1), start, end);
 			
-			Event event = new Event(cur.getString(0), meta);
-			EventOccurence occ = event.singleton();
-			
-			cal.addEvent(occ);
+			cal.addEvent(evnt);
 		}
 		
 		return cal;

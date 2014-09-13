@@ -1,4 +1,4 @@
-package com.pennapps.smartschedule.event;
+package com.pennapps.smartschedule.scheduler;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,35 +28,35 @@ public class SchedulingCalendar {
 		return total;
 	}
 	
-	private TreeSet<EventOccurence> events;
+	private TreeSet<Event> events;
 
 	public SchedulingCalendar() {
-		events = new TreeSet<EventOccurence>();
+		events = new TreeSet<Event>();
 	}
 	
 	public SchedulingCalendar(SchedulingCalendar other) {
-		events = new TreeSet<EventOccurence>(other.events);
+		events = new TreeSet<Event>(other.events);
 	}
 	
-	public void updateEvent(EventOccurence evnt) {
+	public void updateEvent(Event evnt) {
 		events.remove(evnt);
 		events.add(evnt);
 	}
 	
-	public void addEvent(EventOccurence evnt) {
+	public void addEvent(Event evnt) {
 		events.add(evnt);
 	}
 	
-	public boolean removeEvent(EventOccurence evnt) {
+	public boolean removeEvent(Event evnt) {
 		return events.remove(evnt);
 	}
 	
-	public boolean hasEvent(EventOccurence evnt) {
+	public boolean hasEvent(Event evnt) {
 		return events.contains(evnt);
 	}
 	
-	public List<EventOccurence> getOccurences(Day day) {		
-		return getOccurences(day.getStart(), day.getEnd());
+	public List<Event> getEvents(Day day) {		
+		return getEvents(day.getStart(), day.getEnd());
 	}
 	
 	public List<Interval> getAvailableIntervals(Day day) {
@@ -65,14 +65,14 @@ public class SchedulingCalendar {
 	
 	public List<Interval> getAvailableIntervals(DateTime start, DateTime end) {
 		List<Interval> ints = new ArrayList<Interval>();
-		Iterator<EventOccurence> iter = events.iterator();
+		Iterator<Event> iter = events.iterator();
 		
-		EventOccurence cont = null, next = null;
-		while(iter.hasNext() && (cont = iter.next()).getMetadata().getEnd().isBefore(start));
+		Event cont = null, next = null;
+		while(iter.hasNext() && (cont = iter.next()).getEnd().isBefore(start));
 		
-		while(iter.hasNext() && (next = iter.next()).getMetadata().getStart().isBefore(end)) {
-			if(!cont.getMetadata().getEnd().equals(next.getMetadata().getStart()))
-				ints.add(new Interval(cont.getMetadata().getEnd(), cont.getMetadata().getStart()));
+		while(iter.hasNext() && (next = iter.next()).getStart().isBefore(end)) {
+			if(!cont.getEnd().equals(next.getStart()))
+				ints.add(new Interval(cont.getEnd(), cont.getStart()));
 			
 			cont = next;
 		}
@@ -80,10 +80,10 @@ public class SchedulingCalendar {
 		return ints;
 	}
 	
-	public List<EventOccurence> getOccurences(DateTime start, DateTime end) {
-		List<EventOccurence> occ = new ArrayList<EventOccurence>();
-		for(EventOccurence evnt : events) {
-			DateTime st = evnt.getMetadata().getStart();
+	public List<Event> getEvents(DateTime start, DateTime end) {
+		List<Event> occ = new ArrayList<Event>();
+		for(Event evnt : events) {
+			DateTime st = evnt.getStart();
 			if(st.isAfter(start) && st.isBefore(end))
 				occ.add(evnt);
 			

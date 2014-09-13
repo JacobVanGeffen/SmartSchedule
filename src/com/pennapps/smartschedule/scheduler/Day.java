@@ -1,8 +1,12 @@
-package com.pennapps.smartschedule.event;
+package com.pennapps.smartschedule.scheduler;
 
 import org.joda.time.DateTime;
 
 public class Day implements Comparable<Day> {
+	public static Day today() {
+		return new Day(DateTime.now());
+	}
+	
 	private DateTime startTime;
 	
 	public Day(DateTime someTime) {

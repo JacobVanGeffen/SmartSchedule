@@ -1,4 +1,4 @@
-package com.pennapps.smartschedule.event;
+package com.pennapps.smartschedule.scheduler;
 
 import java.util.List;
 

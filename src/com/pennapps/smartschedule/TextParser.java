@@ -8,8 +8,8 @@ import org.joda.time.Period;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
-import com.pennapps.smartschedule.event.Event;
-import com.pennapps.smartschedule.event.EventMetadata;
+import com.pennapps.smartschedule.scheduler.Event;
+import com.pennapps.smartschedule.scheduler.EventMetadata;
 
 @SuppressLint("DefaultLocale")
 public class TextParser {
