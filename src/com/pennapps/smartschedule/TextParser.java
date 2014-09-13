@@ -17,7 +17,7 @@ public class TextParser {
             eventNamePreMarkers = { "have", "there's", "got", "hey", "schedule" },
             deadlinePreMarkers = { "due", "finish by", "on" },
             deadlineTimeMarkers = { "at", "after" }, durationPreMarkers = {
-                    "takes", "lasts", "for", "spend" };
+                    "take", "last", "for", "spend" };
 
     public static ScheduledEvent getScheduledEvent(ArrayList<String> speech) {
         double maxScore = 0;
@@ -204,7 +204,6 @@ public class TextParser {
         for (int a = 0; a < months.length; a++)
             if (str.contains(months[a]))
                 return a + 1;
-        Log.wtf("month", "fucked");
         return -1;
     }
 
@@ -216,7 +215,6 @@ public class TextParser {
         for (int a = 31; a > 0; a--)
             if (str.matches(".*\\D?" + a + "[a-z]{2}.*"))
                 return a;
-        Log.wtf("month day", "fucked");
         return -1;
     }
 
@@ -228,7 +226,6 @@ public class TextParser {
         for (int a = 12; a > 0; a--)
             if (str.matches(".*\\D?" + a + "\\D?.*"))
                 return str.contains("p.m.") ? a % 12 + 12 : a % 12;
-        Log.wtf("hour", "fucked");
         return -1;
     }
 

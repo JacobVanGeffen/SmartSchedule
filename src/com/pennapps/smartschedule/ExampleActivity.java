@@ -3,9 +3,6 @@ package com.pennapps.smartschedule;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
