@@ -13,10 +13,11 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 
 public class ExampleActivity extends Activity {
-
+	public TextParser thing;
     protected static final int RESULT_SPEECH = 1,
             RESULT_TEXTTOSPEECH = 0;
     protected TextToSpeech tts;
+
     
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -28,10 +29,14 @@ public class ExampleActivity extends Activity {
                 ArrayList<String> text = data
                         .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS); // represents all possible texts
                 Log.wtf("Text", text.toString());
+                tts.speak(text.get(0), TextToSpeech.QUEUE_ADD, null);
+                thing = new TextParser(text);
+                thing.speech();
+              
             }
             break;
         case RESULT_TEXTTOSPEECH:
-            tts.speak("Smart Schedule", TextToSpeech.QUEUE_ADD, null);
+            tts.speak("Buenos Dias", TextToSpeech.QUEUE_ADD, null);
             break;
         }
     }
