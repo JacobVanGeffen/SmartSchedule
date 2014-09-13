@@ -19,7 +19,7 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.NoTitleBar" >
         <activity
-            android:name="com.pennapps.smartschedule.CalendarViewActivity"
+            android:name="com.pennapps.smartschedule.ExampleActivity"
             android:label="@string/app_name" 
             android:screenOrientation="portrait">
             <intent-filter>

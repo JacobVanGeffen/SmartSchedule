@@ -16,9 +16,10 @@ public class DailySettings {
 	}
 	
 	public List<EventOccurence> getOccurences(Day actualDay) {
-		List<EventOccurence>
+//		List<EventOccurence>
 		for(Event event : staticEvents) {
 			
 		}
+		return null;
 	}
 }

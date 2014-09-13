@@ -29,10 +29,8 @@ public class ExampleActivity extends Activity {
                 ArrayList<String> text = data
                         .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS); // represents all possible texts
                 Log.wtf("Text", text.toString());
-                tts.speak(text.get(0), TextToSpeech.QUEUE_ADD, null);
-                thing = new TextParser(text);
-                thing.speech();
-              
+                // tts.speak(text.get(0), TextToSpeech.QUEUE_ADD, null);
+                Log.wtf("Event", TextParser.getEvent(text)+"");
             }
             break;
         case RESULT_TEXTTOSPEECH:

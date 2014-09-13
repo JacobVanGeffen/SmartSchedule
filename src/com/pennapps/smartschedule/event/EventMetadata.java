@@ -79,4 +79,9 @@ public class EventMetadata {
 	public void setPriority(int pri) {
 		this.priority = pri;
 	}
+	
+	@Override
+	public String toString(){
+	    return "Start: "+startTime+", Deadline: "+deadline+", Time Period: "+timePeriod;
+	}
 }
