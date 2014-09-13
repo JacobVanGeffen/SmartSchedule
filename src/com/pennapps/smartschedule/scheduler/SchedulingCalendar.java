@@ -4,36 +4,29 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.joda.time.base.AbstractDuration;
 
 import android.util.Log;
 
 public class SchedulingCalendar {
-	public static int INTERVAL_WIDTH = 15;
-	
-	public static int getBlocks(Interval interval) {
-		return (int) (interval.toDurationMillis() / 60000L / INTERVAL_WIDTH);
-	}
-	
-	public static int getBlocks(Period period) {
-		return (int) (period.toStandardMinutes().getMinutes() / INTERVAL_WIDTH);
-	}
-	
-	public static int countAvailable(List<Interval> intervals) {
-		int total = 0;
-		for(Interval intv : intervals)
-			total += SchedulingCalendar.getBlocks(intv);
+	public static Period sum(List<Interval> intervals) {
+		long total = 0L;
+		for(Interval dur : intervals)
+			total += dur.toDurationMillis();
 		
-		return total;
+		return new Period(total);
 	}
 	
 	private long calendarID;
 	private TreeSet<Event> events;
-
+	
 	public SchedulingCalendar(long calID) {
 		events = new TreeSet<Event>();
 		calendarID = calID;
@@ -80,6 +73,21 @@ public class SchedulingCalendar {
 	
 	public List<Interval> getAvailableIntervals(Day day) {
 		return getAvailableIntervals(day.getUseStart(), day.getUseEnd());
+	}
+	
+	public Map<Day, Period> getFreeTime(Day start, Day stop) {
+		Map<Day, Period> free = new TreeMap<Day, Period>();
+		Day current = start;
+		while(current.compareTo(stop) <= 1) {
+			DateTime e_start = current.getCalcStart();
+			DateTime e_stop = current.getUseEnd();
+			
+			free.put(current, sum(getAvailableIntervals(e_start, e_stop)));
+			
+			current = current.next();
+		}
+		
+		return free;
 	}
 	
 	public List<Interval> getAvailableIntervals(DateTime start, DateTime end) {

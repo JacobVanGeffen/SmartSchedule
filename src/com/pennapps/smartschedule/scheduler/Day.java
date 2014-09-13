@@ -21,6 +21,14 @@ public class Day implements Comparable<Day> {
 		return getStart().plusHours(8);
 	}
 	
+	public DateTime getCalcStart() {
+		return new DateTime(Math.max(this.getUseStart().getMillis(), DateTime.now().getMillis()));
+	}
+	
+	public DateTime getCalcStop(DateTime limit) {
+		return new DateTime(Math.min(this.getUseEnd().getMillis(), limit.getMillis()));
+	}
+	
 	public DateTime getEnd() {
 		return startTime.plusDays(1).withTimeAtStartOfDay();
 	}

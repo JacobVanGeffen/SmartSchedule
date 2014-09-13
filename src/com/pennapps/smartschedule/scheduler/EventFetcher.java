@@ -31,7 +31,8 @@ public class EventFetcher {
 		Events.DTEND,
 		Events.DURATION,
 		Events.ALL_DAY,
-		Events.AVAILABILITY
+		Events.AVAILABILITY,
+		Events.DELETED
 	};
 	
 	public EventFetcher(ContentResolver resolver) {
@@ -71,6 +72,8 @@ public class EventFetcher {
 		
 		SchedulingCalendar cal = new SchedulingCalendar(calendarID);
 		while(cur.moveToNext()) {
+			if(cur.getInt(9) == 0) continue;
+			
 			DateTime start = new DateTime(cur.getLong(4));
 			DateTime end = new DateTime(cur.getLong(5));
 			

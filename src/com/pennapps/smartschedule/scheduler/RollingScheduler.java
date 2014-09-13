@@ -20,8 +20,8 @@ public class RollingScheduler {
 		Day deadline = new Day(nextEvent.getDeadline());
 		Day current = start;
 		while(current.compareTo(deadline) <= 0) {
-			DateTime dailyStart = new DateTime(Math.max(current.getUseStart().getMillis(), DateTime.now().getMillis()));
-			DateTime dailyStop = new DateTime(Math.min(current.getUseEnd().getMillis(), nextEvent.getDeadline().getMillis()));
+			DateTime dailyStart = current.getCalcStart();
+			DateTime dailyStop = current.getCalcStop(nextEvent.getDeadline());
 			
 			List<Interval> intervals = calendar.getAvailableIntervals(dailyStart, dailyStop); // TODO: Be the events deadline.
 			for(Interval ints : intervals)
@@ -54,6 +54,38 @@ public class RollingScheduler {
 	
 	public static Event scheduleFirst(SchedulingCalendar calendar, ScheduledEvent event, SchedulingSettings settings) {
 		return scheduleFirst(calendar, Day.today(), event, settings);
+	}
+	
+	public static List<Event> scheduleSplit(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
+		List<Event> events = new ArrayList<Event>();
+		
+		Period eventTime = event.getDuration();
+		
+		int part = 1;
+		
+		Day current = start;
+		Day stop = new Day(event.getDeadline());
+		while(current.compareTo(stop) <= 0 && eventTime.getMillis() > 0) {
+			List<Interval> intervals = calendar.getAvailableIntervals(current.getCalcStart(), current.getCalcStop(event.getDeadline()));
+			
+			Period dailyLimit = new Period(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Period.days(1).getMillis()));		
+			for(Interval interval : intervals) {
+				if(dailyLimit.getMillis() == 0) break;
+				
+				if(interval.toDuration().isLongerThan(settings.getMinimumLength().toStandardDuration())) {
+					long realDuration = Math.min(dailyLimit.getMillis(), interval.toDurationMillis());
+					dailyLimit = new Period(dailyLimit.getMillis() - realDuration);
+					eventTime = new Period(eventTime.getMillis() - realDuration);
+					
+					Event eventFragment = new Event(-1, event.getName() + " (Part " + part + ")", interval.getStart(), 
+							interval.getStart().plus(realDuration));
+					
+					events.add(eventFragment);
+				}
+			}
+		}
+		
+		return events;
 	}
 	
 	public static List<ScheduledEvent> split(ScheduledEvent event, int splits, Period minimumTime) {
