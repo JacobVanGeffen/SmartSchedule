@@ -73,17 +73,20 @@ public class SchedulingCalendar {
 	
 	public List<Interval> getAvailableIntervals(DateTime start, DateTime end) {
 		List<Interval> ints = new ArrayList<Interval>();
-		Iterator<Event> iter = events.iterator();
+		Iterator<Event> iter = getEvents(start, end).iterator();
 		
 		Event cont = null, next = null;
 		while(iter.hasNext() && (cont = iter.next()).getEnd().isBefore(start));
 		
 		while(iter.hasNext() && (next = iter.next()).getStart().isBefore(end)) {
 			if(!cont.getEnd().equals(next.getStart()))
-				ints.add(new Interval(cont.getEnd(), cont.getStart()));
+				ints.add(new Interval(cont.getEnd(), next.getStart()));
 			
 			cont = next;
 		}
+		
+		if(cont == null)
+		    ints.add(new Interval(start, end));
 		
 		return ints;
 	}
@@ -92,11 +95,13 @@ public class SchedulingCalendar {
 		List<Event> occ = new ArrayList<Event>();
 		for(Event evnt : events) {
 			DateTime st = evnt.getStart();
+			DateTime en = evnt.getEnd();
 			if(st.isAfter(start) && st.isBefore(end))
 				occ.add(evnt);
-			
-			if(st.isAfter(end))
-				break;
+			else if(en.isAfter(start) && en.isBefore(end))
+			    occ.add(evnt);
+			else if(st.isBefore(start) && en.isAfter(end))
+			    occ.add(evnt);
 		}
 		
 		return occ;

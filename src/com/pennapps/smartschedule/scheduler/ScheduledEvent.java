@@ -47,4 +47,9 @@ public class ScheduledEvent {
 		
 		return this;
 	}
+	
+	@Override
+	public String toString() {
+	    return name + ", " + deadline + ", " + duration;
+	}
 }

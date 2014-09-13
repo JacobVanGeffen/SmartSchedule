@@ -9,7 +9,7 @@ import org.joda.time.Period;
 
 public class RollingScheduler {
 	
-	public List<Interval> getScheduleIntervals(SchedulingCalendar calendar, Day start, ScheduledEvent nextEvent, SchedulingSettings settings) {
+	public static List<Interval> getScheduleIntervals(SchedulingCalendar calendar, Day start, ScheduledEvent nextEvent, SchedulingSettings settings) {
 		// Look for first good opportunity to put problem.
 		// Add splitting at a later time.
 		
@@ -23,7 +23,7 @@ public class RollingScheduler {
 				if(i.toPeriod().getMillis() >= nextEvent.getDuration().getMillis())
 				{
 					DateTime evnt_start = i.getStart();
-					DateTime evnt_stop = evnt_start.plusMillis((int) (i.toPeriod().getMillis() - nextEvent.getDeadline().getMillis()));
+					DateTime evnt_stop = evnt_start.plusMillis((int) (i.toPeriod().getMillis() - nextEvent.getDuration().getMillis()));
 				
 					times.add(new Interval(evnt_start, evnt_stop));
 				}
@@ -35,7 +35,7 @@ public class RollingScheduler {
 		return times;
 	}
 	
-	public Event scheduleFirst(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
+	public static Event scheduleFirst(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
 		List<Interval> intervals = getScheduleIntervals(calendar, start, event, settings);
 		DateTime realStart = intervals.get(0).getStart();
 		
@@ -43,11 +43,11 @@ public class RollingScheduler {
 		return realEvent;
 	}
 	
-	public Event scheduleFirst(SchedulingCalendar calendar, ScheduledEvent event, SchedulingSettings settings) {
+	public static Event scheduleFirst(SchedulingCalendar calendar, ScheduledEvent event, SchedulingSettings settings) {
 		return scheduleFirst(calendar, Day.today(), event, settings);
 	}
 	
-	public List<ScheduledEvent> split(ScheduledEvent event, int splits, Period minimumTime) {
+	public static List<ScheduledEvent> split(ScheduledEvent event, int splits, Period minimumTime) {
 		List<ScheduledEvent> events = new ArrayList<ScheduledEvent>();
 		long millisPerSegment = event.getDuration().getMillis() / splits;
 		Period segmentLength = new Period(Math.max(minimumTime.getMillis(), millisPerSegment));
@@ -63,7 +63,7 @@ public class RollingScheduler {
 		return events;
 	}
 	
-	public List<ScheduledEvent> split(ScheduledEvent event, int splits) {
+	public static List<ScheduledEvent> split(ScheduledEvent event, int splits) {
 		return split(event, splits, Period.millis(0));
 	}
 }

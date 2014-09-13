@@ -1,18 +1,16 @@
 package com.pennapps.smartschedule;
 
 import java.util.ArrayList;
-import java.util.TimeZone;
 import java.util.regex.Pattern;
+
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.CalendarContract;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -22,11 +20,18 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 
 import com.pennapps.smartschedule.scheduler.Event;
+import com.pennapps.smartschedule.scheduler.EventFetcher;
+import com.pennapps.smartschedule.scheduler.EventPusher;
+import com.pennapps.smartschedule.scheduler.RollingScheduler;
+import com.pennapps.smartschedule.scheduler.ScheduledEvent;
+import com.pennapps.smartschedule.scheduler.SchedulingCalendar;
+import com.pennapps.smartschedule.scheduler.SchedulingSettings;
 
 public class ExampleActivity extends Activity {
 	public TextParser thing;
     protected static final int RESULT_SPEECH = 1,
-            RESULT_TEXTTOSPEECH = 0;
+            RESULT_TEXTTOSPEECH = 0,
+            RESULT_EVENTPUSHED = 2;
     protected TextToSpeech tts;
 
     
@@ -41,12 +46,37 @@ public class ExampleActivity extends Activity {
                         .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS); // represents all possible texts
                 Log.wtf("Text", text.toString());
                 // tts.speak(text.get(0), TextToSpeech.QUEUE_ADD, null);
-                Log.wtf("Event", TextParser.getScheduledEvent(text)+"");
+                ScheduledEvent scheduledEvent = TextParser.getScheduledEvent(text);
+                Log.wtf("Event", scheduledEvent+"");
+                
+                EventFetcher fetch = new EventFetcher(getContentResolver());
+                fetch.getCalendarID();
+                SchedulingCalendar cal = fetch.getCalendar(DateTime.now().minus(Period.weeks(4)));
+                
+                System.out.println("Have the scheduling calendar: " + cal);
+                
+                Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent, new SchedulingSettings());
+                putEvent(event);
             }
             break;
         case RESULT_TEXTTOSPEECH:
-            tts.speak("gesundheit", TextToSpeech.QUEUE_ADD, null);
+            // tts.speak("gesundheit", TextToSpeech.QUEUE_ADD, null);
+            ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Physics Homework due tommorow takes 30 minutes");
+            scheduledEvent.setDeadline(DateTime.now().plusDays(1));
+            Log.wtf("Event", scheduledEvent+"");
+            
+            EventFetcher fetch = new EventFetcher(getContentResolver());
+            fetch.getCalendarID();
+            SchedulingCalendar cal = fetch.getCalendar(DateTime.now().minus(Period.weeks(4)));
+            
+            Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent, new SchedulingSettings());
+            
+            System.out.println("The thing was scheduled.");
+            putEvent(event);
             break; 
+        case RESULT_EVENTPUSHED:
+            Log.wtf("hi", "event pushed");
+            break;
         }
     }
     
@@ -105,28 +135,7 @@ public class ExampleActivity extends Activity {
     }
     
     private void putEvent(Event event){
-        ContentResolver cr = getContentResolver();
-        ContentValues values = new ContentValues();
-
-        values.put(CalendarContract.Events.DTSTART, event.getStart());
-        values.put(CalendarContract.Events.TITLE, title);
-        values.put(CalendarContract.Events.DESCRIPTION, comment);
-
-        TimeZone timeZone = TimeZone.getDefault();
-        values.put(CalendarContract.Events.EVENT_TIMEZONE, timeZone.getID());
-
-        // default calendar
-        values.put(CalendarContract.Events.CALENDAR_ID, 1);
-
-        values.put(CalendarContract.Events.RRULE, "FREQ=DAILY;UNTIL="
-                + dtUntill);
-        //for one hour
-        values.put(CalendarContract.Events.DURATION, "+P1H");
-
-        values.put(CalendarContract.Events.HAS_ALARM, 1);
-
-        // insert event to calendar
-        Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
+        startActivityForResult(EventPusher.insertEvent(event), RESULT_EVENTPUSHED);
     }
 
 }
