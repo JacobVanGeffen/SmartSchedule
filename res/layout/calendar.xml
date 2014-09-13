@@ -14,7 +14,9 @@
     <ListView
         android:id="@+id/lvEventDetails"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content" 
+        android:layout_above="@+id/split"
+        android:layout_below="@+id/rlUtilBar"/>
 
     <View
         android:id="@+id/split"

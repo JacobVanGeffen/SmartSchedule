@@ -58,4 +58,9 @@ public class Event {
 	public EventMetadata getMetadata() {
 		return fullMetadata;
 	}
+	
+	@Override
+	public String toString(){
+	    return eventName;
+	}
 }
