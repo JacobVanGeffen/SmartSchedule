@@ -105,12 +105,17 @@ public class TextParser {
      * Only accepts due dates w/ hour as highest accuracy (can't say
      * "due at 5:30")
      * 
+     * Time zone seems to be messed up
+     * 
      * @param deadline
      * @return
      */
     private static DateTime interpretDeadline(String deadline) {
+        Log.wtf("Deadline", deadline);
         DateTime ret = DateTime.now(), orig = ret;
 
+        Log.wtf("orig", orig+"");
+        
         deadline = deadline.toLowerCase().trim();
 
         if (deadline.contains("tomorrow")) {
@@ -159,6 +164,8 @@ public class TextParser {
             ret = ret.withMonthOfYear(month(deadline)).withDayOfMonth(
                     monthDay(deadline));
 
+        Log.wtf("ret", ret+"");
+        
         return ret.equals(orig) ? null : ret;
     }
 
@@ -186,6 +193,7 @@ public class TextParser {
         for (int a = 0; a < months.length; a++)
             if (str.contains(months[a]))
                 return a + 1;
+        Log.wtf("month", "fucked");
         return -1;
     }
 
@@ -194,10 +202,10 @@ public class TextParser {
      */
     private static int monthDay(String str) {
         str = str.toLowerCase();
-        for (int a = 1; a <= 31; a++)
-            if (str.contains(a + "") && !str.contains("2" + a)
-                    && !str.contains("1" + a))
+        for (int a = 31; a > 0; a--)
+            if (str.matches(".*\\D?"+a+"[a-z]{2}.*"))
                 return a;
+        Log.wtf("month day", "fucked");
         return -1;
     }
 
@@ -206,9 +214,10 @@ public class TextParser {
      */
     private static int hour(String str) {
         str = str.toLowerCase();
-        for (int a = 1; a <= 12; a++)
-            if (str.contains(a + "") && !str.contains("1" + a))
-                return str.contains("p.m.") ? a + 12 : a;
+        for (int a = 12; a > 0; a--)
+            if (str.matches(".*\\D?"+a+"\\D?.*"))
+                return str.contains("p.m.") ? a%12 + 12 : a%12;
+        Log.wtf("hour", "fucked");
         return -1;
     }
 

@@ -61,9 +61,10 @@ public class ExampleActivity extends Activity {
             break;
         case RESULT_TEXTTOSPEECH:
             // tts.speak("gesundheit", TextToSpeech.QUEUE_ADD, null);
-            ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Physics Homework due tommorow takes 30 minutes");
-            scheduledEvent.setDeadline(DateTime.now().plusDays(1));
+            ScheduledEvent scheduledEvent = 
+                TextParser.getScheduledEvent("Data structures project due October 15th at 7 p.m. takes 5 hours and 37 minutes");
             Log.wtf("Event", scheduledEvent+"");
+            Log.wtf("time", scheduledEvent.getDeadline().getHourOfDay()+"");
             
             EventFetcher fetch = new EventFetcher(getContentResolver());
             fetch.getCalendarID();
@@ -104,7 +105,7 @@ public class ExampleActivity extends Activity {
         super.onCreate(savedInstanceState);
         
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_example);
         
         findViewById(R.id.ibPlay).setOnClickListener(listener);
         findViewById(R.id.ibRecord).setOnClickListener(listener);
