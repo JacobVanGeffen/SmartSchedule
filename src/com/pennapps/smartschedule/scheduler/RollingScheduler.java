@@ -18,7 +18,10 @@ public class RollingScheduler {
 		Day deadline = new Day(nextEvent.getDeadline());
 		Day current = start;
 		while(current.compareTo(deadline) <= 0) {
-			List<Interval> intervals = calendar.getAvailableIntervals(current); // TODO: Be the events deadline.
+			DateTime dailyStart = new DateTime(Math.max(current.getUseStart().getMillis(), DateTime.now().getMillis()));
+			DateTime dailyStop = new DateTime(Math.min(current.getUseEnd().getMillis(), nextEvent.getDeadline().getMillis()));
+			
+			List<Interval> intervals = calendar.getAvailableIntervals(dailyStart, dailyStop); // TODO: Be the events deadline.
 			for(Interval i : intervals) {
 				if(i.toPeriod().getMillis() >= nextEvent.getDuration().getMillis())
 				{

@@ -81,13 +81,13 @@ public class SchedulingCalendar {
 			return ints;
 		}
 		
-		
 		List<Interval> flattened = new ArrayList<Interval>();
 		for(Event evnt : events) {
 			DateTime e_start = new DateTime(Math.max(evnt.getStart().getMillis(), start.getMillis()));
 			DateTime e_end = new DateTime(Math.min(evnt.getEnd().getMillis(), end.getMillis()));
 			flattened.add(new Interval(e_start, e_end));
 		}
+		
 		// "Flatten" the intervals to have a single group of intervals.
 		Iterator<Interval> flattener = flattened.iterator();
 		Interval current = flattener.next();
@@ -99,7 +99,8 @@ public class SchedulingCalendar {
 			}
 			else
 			{
-				ints.add(current.gap(next));
+				Interval gap = current.gap(next);
+				if(gap != null) ints.add(gap);
 				current = next;
 			}
 		}
