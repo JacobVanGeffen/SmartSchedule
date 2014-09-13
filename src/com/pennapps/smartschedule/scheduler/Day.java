@@ -17,8 +17,16 @@ public class Day implements Comparable<Day> {
 		return startTime;
 	}
 	
+	public DateTime getUseStart() {
+		return getStart().plusHours(8);
+	}
+	
 	public DateTime getEnd() {
 		return startTime.plusDays(1).withTimeAtStartOfDay();
+	}
+	
+	public DateTime getUseEnd() {
+		return getEnd().minusHours(4);
 	}
 	
 	public Day next() {

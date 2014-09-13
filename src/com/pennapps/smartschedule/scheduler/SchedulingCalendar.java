@@ -1,6 +1,7 @@
 package com.pennapps.smartschedule.scheduler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
@@ -68,41 +69,57 @@ public class SchedulingCalendar {
 	}
 	
 	public List<Interval> getAvailableIntervals(Day day) {
-		return getAvailableIntervals(day.getStart(), day.getEnd());
+		return getAvailableIntervals(day.getUseStart(), day.getUseEnd());
 	}
 	
 	public List<Interval> getAvailableIntervals(DateTime start, DateTime end) {
 		List<Interval> ints = new ArrayList<Interval>();
-		Iterator<Event> iter = getEvents(start, end).iterator();
+		List<Event> events = getEvents(start, end);
 		
-		Event cont = null, next = null;
-		while(iter.hasNext() && (cont = iter.next()).getEnd().isBefore(start));
-		
-		while(iter.hasNext() && (next = iter.next()).getStart().isBefore(end)) {
-			if(!cont.getEnd().equals(next.getStart()))
-				ints.add(new Interval(cont.getEnd(), next.getStart()));
-			
-			cont = next;
+		if(events.size() == 0) {
+			ints.add(new Interval(start, end));
+			return ints;
 		}
 		
-		if(cont == null)
-		    ints.add(new Interval(start, end));
+		
+		List<Interval> flattened = new ArrayList<Interval>();
+		for(Event evnt : events) {
+			DateTime e_start = new DateTime(Math.max(evnt.getStart().getMillis(), start.getMillis()));
+			DateTime e_end = new DateTime(Math.min(evnt.getEnd().getMillis(), end.getMillis()));
+			flattened.add(new Interval(e_start, e_end));
+		}
+		// "Flatten" the intervals to have a single group of intervals.
+		Iterator<Interval> flattener = flattened.iterator();
+		Interval current = flattener.next();
+		while(flattener.hasNext()) {
+			Interval next = flattener.next();
+			if(current.overlaps(next)) {
+				flattener.remove();
+				current = current.withEndMillis(Math.max(current.getEndMillis(), next.getEndMillis()));
+			}
+			else
+			{
+				ints.add(current.gap(next));
+				current = next;
+			}
+		}
+		
+		if(current.getEnd().compareTo(end) < 0)
+			ints.add(new Interval(current.getEnd(), end));
 		
 		return ints;
 	}
 	
 	public List<Event> getEvents(DateTime start, DateTime end) {
 		List<Event> occ = new ArrayList<Event>();
+		Interval time = new Interval(start, end);
+		
 		for(Event evnt : events) {
-			DateTime st = evnt.getStart();
-			DateTime en = evnt.getEnd();
-			if(st.isAfter(start) && st.isBefore(end))
+			if(new Interval(evnt.getStart(), evnt.getEnd()).overlaps(time))
 				occ.add(evnt);
-			else if(en.isAfter(start) && en.isBefore(end))
-			    occ.add(evnt);
-			else if(st.isBefore(start) && en.isAfter(end))
-			    occ.add(evnt);
 		}
+		
+		Collections.sort(occ);
 		
 		return occ;
 	}
