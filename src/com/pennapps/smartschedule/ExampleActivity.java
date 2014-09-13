@@ -41,13 +41,13 @@ public class ExampleActivity extends Activity {
         @Override
         public void onClick(View v) {
             switch(v.getId()){
-            case R.id.ibPlay:
+            case R.id.ibPlay: // speak text
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH); 
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
                 startActivityForResult(intent, RESULT_SPEECH);
                 break;
                 
-            case R.id.ibRecord:
+            case R.id.ibRecord: // record speech
                 startActivityForResult(new Intent(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA), RESULT_TEXTTOSPEECH);
                 break;
             }
@@ -65,6 +65,7 @@ public class ExampleActivity extends Activity {
         findViewById(R.id.ibPlay).setOnClickListener(listener);
         findViewById(R.id.ibRecord).setOnClickListener(listener);
         
+        // initializes text to speech engine
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
