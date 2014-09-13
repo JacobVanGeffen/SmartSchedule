@@ -43,6 +43,7 @@ public class SchedulingCalendar {
 			if(evnt.getName().equals(eventName))
 				return new Period(evnt.getStart(), evnt.getEnd());
 		}
+		return null;
 	}
 	
 	public void updateEvent(Event evnt) {
