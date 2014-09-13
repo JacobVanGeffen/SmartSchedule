@@ -27,6 +27,13 @@ public class Event {
 		fullMetadata = new EventMetadata();
 	}
 	
+	public Event(String name, EventMetadata meta) {
+		this.eventName = name;
+		
+		archetype = null;
+		fullMetadata = meta;
+	}
+	
 	public EventOccurence singleton() {
 		return new EventOccurence(this, true);
 	}
@@ -35,24 +42,30 @@ public class Event {
 		return eventID;
 	}
 	
-	public void setID(long id) {
+	public Event setID(long id) {
 		this.eventID = id;
+		
+		return this;
 	}
 	
 	public String getName() {
 		return eventName;
 	}
 	
-	public void setName(String name) {
+	public Event setName(String name) {
 		this.eventName = name;
+		
+		return this;
 	}
 	
 	public EventArchetype getArchetype() {
 		return archetype;
 	}
 	
-	public void setArchetype(EventArchetype t) {
+	public Event setArchetype(EventArchetype t) {
 		this.archetype = t;
+		
+		return this;
 	}
 	
 	public EventMetadata getMetadata() {

@@ -9,7 +9,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
-public class Calendar {
+public class SchedulingCalendar {
 	public static int INTERVAL_WIDTH = 15;
 	
 	public static int getBlocks(Interval interval) {
@@ -23,18 +23,18 @@ public class Calendar {
 	public static int countAvailable(List<Interval> intervals) {
 		int total = 0;
 		for(Interval intv : intervals)
-			total += Calendar.getBlocks(intv);
+			total += SchedulingCalendar.getBlocks(intv);
 		
 		return total;
 	}
 	
 	private TreeSet<EventOccurence> events;
 
-	public Calendar() {
+	public SchedulingCalendar() {
 		events = new TreeSet<EventOccurence>();
 	}
 	
-	public Calendar(Calendar other) {
+	public SchedulingCalendar(SchedulingCalendar other) {
 		events = new TreeSet<EventOccurence>(other.events);
 	}
 	

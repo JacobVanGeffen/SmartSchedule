@@ -36,8 +36,10 @@ public class EventMetadata {
 		return flags.contains(f);
 	}
 	
-	public void addFlag(EventFlag f) {
+	public EventMetadata addFlag(EventFlag f) {
 		flags.add(f);
+		
+		return this;
 	}
 	
 	public Set<EventFlag> getFlags() {
@@ -48,16 +50,20 @@ public class EventMetadata {
 		return timePeriod;
 	}
 	
-	public void setDuration(Period per) {
+	public EventMetadata setDuration(Period per) {
 		this.timePeriod = per;
+		
+		return this;
 	}
 	
 	public DateTime getStart() {
 		return startTime;
 	}
 	
-	public void setStart(DateTime time) {
+	public EventMetadata setStart(DateTime time) {
 		this.startTime = time;
+		
+		return this;
 	}
 	
 	public DateTime getEnd() {
@@ -68,16 +74,20 @@ public class EventMetadata {
 		return deadline;
 	}
 	
-	public void setDeadline(DateTime time) {
+	public EventMetadata setDeadline(DateTime time) {
 		this.deadline = time;
+		
+		return this;
 	}
 	
 	public int getPriority() {
 		return priority;
 	}
 	
-	public void setPriority(int pri) {
+	public EventMetadata setPriority(int pri) {
 		this.priority = pri;
+		
+		return this;
 	}
 	
 	@Override
