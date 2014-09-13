@@ -1,5 +1,6 @@
 package com.pennapps.smartschedule;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -21,6 +22,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -63,6 +65,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.rlAddTask).setOnClickListener(listener);
+        
+        loadRecentTasks();
     }
     
     private void loadRecentTasks(){
@@ -70,6 +74,17 @@ public class MainActivity extends Activity {
         for (String task : StorageUtil.getRecentTasks(this)){
             TextView taskView = new TextView(this);
             taskView.setText(task);
+            taskView.setTextSize(20);
+            taskView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+            
+            View split = new View(this);
+            LinearLayout.LayoutParams splitParams = new LinearLayout.LayoutParams(2, LayoutParams.MATCH_PARENT);
+            splitParams.setMargins(10, 0, 10, 0);
+            split.setLayoutParams(splitParams);
+            split.setBackgroundColor(0xff7f7f7f);
+            
+            layout.addView(taskView);
+            layout.addView(split);
         }
     }
 
@@ -81,28 +96,7 @@ public class MainActivity extends Activity {
         case RESULT_TAKEEVENT:
             if(resultCode != RESULT_OK || data == null)
                 break;
-            
-            ScheduledEvent scheduledEvent = TextParser.getScheduledEvent(data
-                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS));
-            
-            EventFetcher fetch = new EventFetcher(getContentResolver());
-            fetch.getCalendarID();
-            SchedulingCalendar cal = fetch.getCalendar();
-            
-            // check presets
-            if(scheduledEvent.getDuration() == null){
-                scheduledEvent.setDuration(getDuration(
-                        cal.getEvents(DateTime.now().minusWeeks(4),
-                                DateTime.now()), scheduledEvent.getName()));
-            }
-
-            
-            
-            Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
-                    new SchedulingSettings());
-            cal.addEvent(event);
-
-            putEvent(event);
+            handleSpeechEvent(data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS));
             break;
         }
     }
@@ -118,6 +112,29 @@ public class MainActivity extends Activity {
             }
         }
         return "";
+    }
+    
+    private void handleSpeechEvent(ArrayList<String> events){
+        ScheduledEvent scheduledEvent = TextParser.getScheduledEvent(events);
+        
+        EventFetcher fetch = new EventFetcher(getContentResolver());
+        fetch.getCalendarID();
+        SchedulingCalendar cal = fetch.getCalendar();
+        
+        // check presets
+        if(scheduledEvent.getDuration() == null){
+            scheduledEvent.setDuration(getDuration(
+                    cal.getEvents(DateTime.now().minusWeeks(4),
+                            DateTime.now()), scheduledEvent.getName()));
+        }
+
+        
+        
+        Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
+                new SchedulingSettings());
+        cal.addEvent(event);
+
+        putEvent(event);
     }
     
     private void putEvent(Event event){

@@ -23,6 +23,9 @@ public class RollingScheduler {
 			DateTime dailyStart = current.getCalcStart();
 			DateTime dailyStop = current.getCalcStop(nextEvent.getDeadline());
 			
+			if(dailyStop.isBefore(dailyStart.getMillis()))
+			    break;
+			
 			List<Interval> intervals = calendar.getAvailableIntervals(dailyStart, dailyStop); // TODO: Be the events deadline.
 			for(Interval ints : intervals)
 			    Log.wtf("RollingScheduler getScheduleIntervals", "" + ints.toDurationMillis());

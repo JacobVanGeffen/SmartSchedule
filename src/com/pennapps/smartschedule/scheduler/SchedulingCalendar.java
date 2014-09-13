@@ -51,7 +51,6 @@ public class SchedulingCalendar {
     public void addEvent(Event evnt) {
         events.add(evnt);
         evnt.setCalendarID(calendarID);
-        Log.wtf("Event Added", "An event was added to the calendar.");
     }
     
     public boolean removeEvent(Event evnt) {
@@ -95,7 +94,6 @@ public class SchedulingCalendar {
         
         if(events.size() == 0) {
             ints.add(new Interval(start, end));
-            Log.wtf("RollingScheduler emtpy", "EMPTY!");
             return ints;
         }
         
@@ -123,8 +121,6 @@ public class SchedulingCalendar {
             }
         }
         
-        Log.wtf("SchedulingCalendar last", "" + current.toDurationMillis());
-        
         if(current.getEnd().compareTo(end) < 0)
             ints.add(new Interval(current.getEnd(), end));
         
@@ -132,20 +128,18 @@ public class SchedulingCalendar {
     }
     
     public List<Event> getEvents(DateTime start, DateTime end) {
-        Log.wtf("Start and End", start+" \n"+end);
-        
         List<Event> occ = new ArrayList<Event>();
         Interval time = new Interval(start, end);
         
         for(Event evnt : events) {
-            Log.wtf("SchedulingCalendar listEvent", "" + evnt);
-            
             Interval eventInterval = new Interval(evnt.getStart(), evnt.getEnd());
             if(eventInterval.overlaps(time) || time.overlaps(eventInterval))
                 occ.add(evnt);
         }
         
         Collections.sort(occ);
+
+        Log.wtf("Get Events", occ+"");
         
         return occ;
     }
