@@ -3,8 +3,10 @@ package com.pennapps.smartschedule;
 import java.util.ArrayList;
 
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
 import com.pennapps.smartschedule.event.Event;
 import com.pennapps.smartschedule.event.EventMetadata;
@@ -13,40 +15,50 @@ import com.pennapps.smartschedule.event.EventMetadata;
 public class TextParser {
 
     public static final String[] eventNamePostMarkers = { "on", "due", },
-            eventNamePreMarkers = { "i", "have", "there's", "got", "hey",
-                    "schedule" }, // this is very inaccurate
+            eventNamePreMarkers = { "have", "there's", "got", "hey", "schedule" }, // this
+                                                                                   // is
+                                                                                   // very
+                                                                                   // inaccurate
             deadlinePreMarkers = { "due", "finish by", "on" },
-            deadlineTimeMarkers = { "at", "after" };
+            deadlineTimeMarkers = { "at", "after" }, durationPreMarkers = {
+                    "takes", "lasts", "for", "spend" };
 
-    public static Event getEvent(ArrayList<String> speech){
+    public static Event getEvent(ArrayList<String> speech) {
         double maxScore = 0;
         Event best = null;
-        for(String s : speech){
-            Event e = getEvent(s);
-            if(score(e) > maxScore){
+        for (String s : speech) {
+            Event e = null;
+            try {
+                e = getEvent(s);
+            } catch (Exception ex) {
+                Log.wtf("Excepiton", ex.toString());
+                continue;
+            }
+            if (score(e) > maxScore) {
                 maxScore = score(e);
                 best = e;
             }
         }
         return best;
     }
-    
-    private static double score(Event e){
+
+    private static double score(Event e) {
         double score = 0;
-        if(e.getName() != "")
+        if (e.getName() != "")
             score++;
-        if(e.getMetadata().getDeadline() != null)
+        if (e.getMetadata().getDeadline() != null)
             score++;
-        if(e.getMetadata().getDuration() != null)
+        if (e.getMetadata().getDuration() != null)
             score++;
-        if(e.getMetadata().getStart() != null)
+        if (e.getMetadata().getStart() != null)
             score++;
         return score;
     }
-    
-    // TODO currently does not include duration
+
     public static Event getEvent(String speech) {
-        String name = null, deadline = null;
+        speech = speech.toLowerCase();
+        
+        String name = null, deadline = null, duration = null;
         Event event;
 
         for (String splitter : eventNamePostMarkers) {
@@ -57,10 +69,11 @@ public class TextParser {
         }
 
         for (String rep : eventNamePreMarkers)
-            name.replaceAll(rep + ".*", "");
+            name = name.replaceAll(rep + ".*", "");
         name = name.toLowerCase();
         name = name.trim();
-        name = name.substring(0, 1).toUpperCase() + name.substring(1);
+        if (name.length() > 0)
+            name = name.substring(0, 1).toUpperCase() + name.substring(1);
 
         event = new Event(name);
 
@@ -68,29 +81,44 @@ public class TextParser {
 
         for (String splitter : eventNamePostMarkers) {
             if (deadline == null
-                    || deadline.length() > speech.split(splitter)[0].length()) {
+                    || deadline.length() > speech.split(splitter)[speech
+                            .split(splitter).length - 1].length()) {
                 String[] ar = speech.split(splitter);
                 deadline = ar[ar.length - 1];
             }
         }
 
+        for (String rep : durationPreMarkers)
+            deadline = deadline.replaceAll(rep + ".*", "");
+        deadline = deadline.toLowerCase();
+        deadline = deadline.trim();
+
         data.setDeadline(interpretDeadline(deadline));
         data.setStart(DateTime.now());
-        
-        // data.setDuration(new Period());
+
+        for (String splitter : durationPreMarkers) {
+            if (duration == null
+                    || duration.length() > speech.split(splitter)[speech
+                            .split(splitter).length - 1].length()) {
+                String[] ar = speech.split(splitter);
+                duration = ar[ar.length - 1];
+            }
+        }
+
+        data.setDuration(time(duration));
 
         return event;
     }
 
     /**
      * Only accepts due dates w/ hour as highest accuracy (can't say
-     * "due at 5:30"
+     * "due at 5:30")
      * 
      * @param deadline
      * @return
      */
     private static DateTime interpretDeadline(String deadline) {
-        DateTime ret = DateTime.now();
+        DateTime ret = DateTime.now(), orig = ret;
 
         deadline = deadline.toLowerCase().trim();
 
@@ -107,17 +135,25 @@ public class TextParser {
         }
 
         if (deadline.contains("day")) { // "in 5 days..." or "in a day"
-            ret = ret.plusDays(num(deadline.substring(deadline.indexOf("in"),
-                    deadline.indexOf("day")))); // DEFINITELY not accurate
+            int start = deadline.indexOf("in"), end = deadline.indexOf("day");
+            if (start < 0)
+                start = 0;
+            ret = ret.plusDays(num(deadline.substring(start, end)));
         } else if (deadline.contains("week")) {
-            ret = ret.plusWeeks(num(deadline.substring(deadline.indexOf("in"),
-                    deadline.indexOf("week"))));
+            int start = deadline.indexOf("in"), end = deadline.indexOf("week");
+            if (start < 0)
+                start = 0;
+            ret = ret.plusWeeks(num(deadline.substring(start, end)));
         } else if (deadline.contains("month")) {
-            ret = ret.plusMonths(num(deadline.substring(deadline.indexOf("in"),
-                    deadline.indexOf("month"))));
+            int start = deadline.indexOf("in"), end = deadline.indexOf("month");
+            if (start < 0)
+                start = 0;
+            ret = ret.plusMonths(num(deadline.substring(start, end)));
         } else if (deadline.contains("year")) {
-            ret = ret.plusYears(num(deadline.substring(deadline.indexOf("in"),
-                    deadline.indexOf("year"))));
+            int start = deadline.indexOf("in"), end = deadline.indexOf("year");
+            if (start < 0)
+                start = 0;
+            ret = ret.plusYears(num(deadline.substring(start, end)));
         }
 
         if (hour(deadline) != -1) {
@@ -125,16 +161,17 @@ public class TextParser {
                     .withSecondOfMinute(0);
         }
 
-        if (weekDay(deadline) != -1)
-            ret = ret.withDayOfWeek(weekDay(deadline)); // but make sure it
-                                                        // always loops
-                                                        // FORWARD!!!
+        if (weekDay(deadline) != -1){
+            if(ret.getDayOfWeek() > weekDay(deadline))
+                ret.plusDays(7);
+            ret = ret.withDayOfWeek(weekDay(deadline));
+        }
 
         if (month(deadline) != -1 && monthDay(deadline) != -1)
             ret = ret.withMonthOfYear(month(deadline)).withDayOfMonth(
                     monthDay(deadline));
 
-        return ret;
+        return ret.equals(orig) ? null : ret;
     }
 
     /**
@@ -142,8 +179,8 @@ public class TextParser {
      */
     private static int weekDay(String str) {
         str = str.toLowerCase();
-        String[] days = { "sunday", "monday", "tuesday", "wednesday",
-                "thursday", "friday", "saturday" };
+        String[] days = { "monday", "tuesday", "wednesday",
+                "thursday", "friday", "saturday", "sunday" };
         for (int a = 0; a < days.length; a++)
             if (str.contains(days[a]))
                 return a + 1;
@@ -193,6 +230,29 @@ public class TextParser {
         } catch (Exception e) {
             return 1;
         }
+    }
+
+    private static Period time(String duration) {
+        Period period = Period.ZERO;
+
+        if (duration.contains("second"))
+            period = period.plusSeconds(num(duration
+                    .substring(0, duration.indexOf("second")).trim()
+                    .replaceAll(".* ", "")));
+        if (duration.contains("minute"))
+            period = period.plusMinutes(num(duration
+                    .substring(0, duration.indexOf("minute")).trim()
+                    .replaceAll(".* ", "")));
+        if (duration.contains("hour"))
+            period = period.plusHours(num(duration
+                    .substring(0, duration.indexOf("hour")).trim()
+                    .replaceAll(".* ", "")));
+        if (duration.contains("day"))
+            period = period.plusDays(num(duration
+                    .substring(0, duration.indexOf("day")).trim()
+                    .replaceAll(".* ", "")));
+
+        return period.equals(Period.ZERO) ? null : period;
     }
 
 }
