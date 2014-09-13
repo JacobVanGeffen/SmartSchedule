@@ -15,13 +15,10 @@ import com.pennapps.smartschedule.scheduler.EventMetadata;
 public class TextParser {
 
     public static final String[] eventNamePostMarkers = { "on", "due", },
-            eventNamePreMarkers = { "have", "there's", "got", "hey", "schedule" }, // this
-                                                                                   // is
-                                                                                   // very
-                                                                                   // inaccurate
+            eventNamePreMarkers = { "have", "there's", "got", "hey", "schedule" },
             deadlinePreMarkers = { "due", "finish by", "on" },
-            deadlineTimeMarkers = { "at", "after" }, durationPreMarkers = {
-                    "takes", "lasts", "for", "spend" };
+            deadlineTimeMarkers = { "at", "after" }, 
+            durationPreMarkers = { "takes", "lasts", "for", "spend" };
 
     public static Event getEvent(ArrayList<String> speech) {
         double maxScore = 0;
@@ -134,26 +131,22 @@ public class TextParser {
 
         }
 
-        if (deadline.contains("day")) { // "in 5 days..." or "in a day"
+        if (deadline.matches("day")) { // "in 5 days..." or "in a day"
             int start = deadline.indexOf("in"), end = deadline.indexOf("day");
-            if (start < 0)
-                start = 0;
-            ret = ret.plusDays(num(deadline.substring(start, end)));
+            if (start != -1)
+                ret = ret.plusDays(num(deadline.substring(start, end)));
         } else if (deadline.contains("week")) {
             int start = deadline.indexOf("in"), end = deadline.indexOf("week");
-            if (start < 0)
-                start = 0;
-            ret = ret.plusWeeks(num(deadline.substring(start, end)));
+            if (start != -1)
+                ret = ret.plusWeeks(num(deadline.substring(start, end)));
         } else if (deadline.contains("month")) {
             int start = deadline.indexOf("in"), end = deadline.indexOf("month");
-            if (start < 0)
-                start = 0;
-            ret = ret.plusMonths(num(deadline.substring(start, end)));
+            if (start != -1)
+                ret = ret.plusMonths(num(deadline.substring(start, end)));
         } else if (deadline.contains("year")) {
             int start = deadline.indexOf("in"), end = deadline.indexOf("year");
-            if (start < 0)
-                start = 0;
-            ret = ret.plusYears(num(deadline.substring(start, end)));
+            if (start != -1)
+                ret = ret.plusYears(num(deadline.substring(start, end)));
         }
 
         if (hour(deadline) != -1) {
@@ -162,8 +155,9 @@ public class TextParser {
         }
 
         if (weekDay(deadline) != -1){
-            if(ret.getDayOfWeek() > weekDay(deadline))
-                ret.plusDays(7);
+            Log.wtf("Day", orig .getDayOfWeek()+" "+weekDay(deadline));
+            if(orig.getDayOfWeek() >= weekDay(deadline))
+                ret = ret.plusDays(7);
             ret = ret.withDayOfWeek(weekDay(deadline));
         }
 

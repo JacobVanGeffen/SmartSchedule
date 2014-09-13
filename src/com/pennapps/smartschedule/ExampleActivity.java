@@ -1,13 +1,17 @@
 package com.pennapps.smartschedule;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -35,7 +39,7 @@ public class ExampleActivity extends Activity {
             break;
         case RESULT_TEXTTOSPEECH:
             tts.speak("Buenos Dias", TextToSpeech.QUEUE_ADD, null);
-            break;
+            break; 
         }
     }
     
@@ -77,6 +81,20 @@ public class ExampleActivity extends Activity {
                 }else Log.wtf("No", "didn't worked");
             }
         });
+        
+        Log.wtf("Email", getEmail());
+    }
+    
+    private String getEmail(){
+        Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
+        Account[] accounts = AccountManager.get(this).getAccounts();
+        for (Account account : accounts) {
+            if (emailPattern.matcher(account.name).matches()) {
+                if(account.name.contains("@gmail.com"))
+                    return account.name;
+            }
+        }
+        return "";
     }
 
 }
