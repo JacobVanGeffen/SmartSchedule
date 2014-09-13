@@ -8,8 +8,7 @@ import org.joda.time.Period;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
-import com.pennapps.smartschedule.scheduler.Event;
-import com.pennapps.smartschedule.scheduler.EventMetadata;
+import com.pennapps.smartschedule.scheduler.ScheduledEvent;
 
 @SuppressLint("DefaultLocale")
 public class TextParser {
@@ -20,13 +19,13 @@ public class TextParser {
             deadlineTimeMarkers = { "at", "after" }, 
             durationPreMarkers = { "takes", "lasts", "for", "spend" };
 
-    public static Event getEvent(ArrayList<String> speech) {
+    public static ScheduledEvent getScheduledEvent(ArrayList<String> speech) {
         double maxScore = 0;
-        Event best = null;
+        ScheduledEvent best = null;
         for (String s : speech) {
-            Event e = null;
+            ScheduledEvent e = null;
             try {
-                e = getEvent(s);
+                e = getScheduledEvent(s);
             } catch (Exception ex) {
                 Log.wtf("Excepiton", ex.toString());
                 continue;
@@ -39,24 +38,22 @@ public class TextParser {
         return best;
     }
 
-    private static double score(Event e) {
+    private static double score(ScheduledEvent e) {
         double score = 0;
         if (e.getName() != "")
             score++;
-        if (e.getMetadata().getDeadline() != null)
+        if (e.getDeadline() != null)
             score++;
-        if (e.getMetadata().getDuration() != null)
-            score++;
-        if (e.getMetadata().getStart() != null)
+        if (e.getDuration() != null)
             score++;
         return score;
     }
 
-    public static Event getEvent(String speech) {
+    public static ScheduledEvent getScheduledEvent(String speech) {
         speech = speech.toLowerCase();
         
         String name = null, deadline = null, duration = null;
-        Event event;
+        ScheduledEvent event;
 
         for (String splitter : eventNamePostMarkers) {
             if (name == null
@@ -72,9 +69,7 @@ public class TextParser {
         if (name.length() > 0)
             name = name.substring(0, 1).toUpperCase() + name.substring(1);
 
-        event = new Event(name);
-
-        EventMetadata data = event.getMetadata();
+        event = new ScheduledEvent(name);
 
         for (String splitter : eventNamePostMarkers) {
             if (deadline == null
@@ -90,8 +85,7 @@ public class TextParser {
         deadline = deadline.toLowerCase();
         deadline = deadline.trim();
 
-        data.setDeadline(interpretDeadline(deadline));
-        data.setStart(DateTime.now());
+        event.setDeadline(interpretDeadline(deadline));
 
         for (String splitter : durationPreMarkers) {
             if (duration == null
@@ -102,7 +96,7 @@ public class TextParser {
             }
         }
 
-        data.setDuration(time(duration));
+        event.setDuration(time(duration));
 
         return event;
     }

@@ -15,4 +15,5 @@ public class DailySettings {
 	public List<Event> getStaticEvents() {
 		return staticEvents;
 	}
+	
 }

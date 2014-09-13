@@ -1,13 +1,18 @@
 package com.pennapps.smartschedule;
 
 import java.util.ArrayList;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -15,6 +20,8 @@ import android.util.Patterns;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+
+import com.pennapps.smartschedule.scheduler.Event;
 
 public class ExampleActivity extends Activity {
 	public TextParser thing;
@@ -34,11 +41,11 @@ public class ExampleActivity extends Activity {
                         .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS); // represents all possible texts
                 Log.wtf("Text", text.toString());
                 // tts.speak(text.get(0), TextToSpeech.QUEUE_ADD, null);
-                Log.wtf("Event", TextParser.getEvent(text)+"");
+                Log.wtf("Event", TextParser.getScheduledEvent(text)+"");
             }
             break;
         case RESULT_TEXTTOSPEECH:
-            tts.speak("Buenos Dias", TextToSpeech.QUEUE_ADD, null);
+            tts.speak("gesundheit", TextToSpeech.QUEUE_ADD, null);
             break; 
         }
     }
@@ -95,6 +102,31 @@ public class ExampleActivity extends Activity {
             }
         }
         return "";
+    }
+    
+    private void putEvent(Event event){
+        ContentResolver cr = getContentResolver();
+        ContentValues values = new ContentValues();
+
+        values.put(CalendarContract.Events.DTSTART, event.getStart());
+        values.put(CalendarContract.Events.TITLE, title);
+        values.put(CalendarContract.Events.DESCRIPTION, comment);
+
+        TimeZone timeZone = TimeZone.getDefault();
+        values.put(CalendarContract.Events.EVENT_TIMEZONE, timeZone.getID());
+
+        // default calendar
+        values.put(CalendarContract.Events.CALENDAR_ID, 1);
+
+        values.put(CalendarContract.Events.RRULE, "FREQ=DAILY;UNTIL="
+                + dtUntill);
+        //for one hour
+        values.put(CalendarContract.Events.DURATION, "+P1H");
+
+        values.put(CalendarContract.Events.HAS_ALARM, 1);
+
+        // insert event to calendar
+        Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
     }
 
 }
