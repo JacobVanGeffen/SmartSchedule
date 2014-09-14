@@ -124,10 +124,9 @@ public class RollingScheduler {
 					
 					events.add(eventFragment);
 				}
-				
-				runoverTime = dailyLimit;
 			}
 			
+			runoverTime = dailyLimit;
 			current = current.next();
 		}
 		
@@ -137,7 +136,11 @@ public class RollingScheduler {
 		
 		if(eventTime.getMillis() > 0 && settings.isLoadBalanced()) {
 			ScheduledEvent tempEvent = new ScheduledEvent(event.getName(), event.getDeadline(), eventTime);
-			List<Event> res = scheduleSplit(calendar, start, tempEvent, settings);
+			SchedulingCalendar tempCalendar = new SchedulingCalendar(calendar);
+			for(Event evnt : events)
+				tempCalendar.addEvent(evnt);
+			
+			List<Event> res = scheduleSplit(tempCalendar, start, tempEvent, settings);
 			
 			if(res.size() > 0) {
 				events.addAll(res);

@@ -48,6 +48,8 @@ public class MainActivity extends Activity {
     protected static final int RESULT_TAKEEVENT = 0, 
             RESULT_EVENTPUSHED = 1;
 
+    public static final boolean DEBUG = true;
+    
     public TextParser thing;
     protected TextToSpeech tts;
     private boolean isEditMode = false;
@@ -58,6 +60,11 @@ public class MainActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
             case R.id.rlAddTask:
+            	if(DEBUG) {
+            		testData();
+            		break;
+            	}
+            	
                 if(isEditMode){
                     endEditMode(true);
                     return;
@@ -191,7 +198,7 @@ public class MainActivity extends Activity {
     
     @SuppressWarnings("unused")
     private void testData() {
-        ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Data structures project due October 15th at 7 p.m. takes 7 hours and 53 minutes");
+        ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Data structures project due in 4 days takes 7 hours and 53 minutes");
         
         EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
         fetch.getCalendarID();

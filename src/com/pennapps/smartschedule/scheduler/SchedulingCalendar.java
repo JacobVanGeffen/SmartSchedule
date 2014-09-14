@@ -27,7 +27,7 @@ public class SchedulingCalendar {
     	if(inputs.size() == 0) return flattened;
     	
         // "Flatten" the intervals to have a single group of intervals.
-        Iterator<Interval> flattener = flattened.iterator();
+        Iterator<Interval> flattener = inputs.iterator();
         Interval current = flattener.next();
         while(flattener.hasNext()) {
             Interval next = flattener.next();
