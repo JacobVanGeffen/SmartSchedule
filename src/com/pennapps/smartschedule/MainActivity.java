@@ -114,7 +114,7 @@ public class MainActivity extends Activity {
     }
     
     private void testData() {
-        ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Data structures project due October 15th at 7 p.m. takes 5 hours and 37 minutes");
+        ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Data structures project due October 15th at 7 p.m. takes 7 hours and 53 minutes");
         
         EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
         fetch.getCalendarID();
