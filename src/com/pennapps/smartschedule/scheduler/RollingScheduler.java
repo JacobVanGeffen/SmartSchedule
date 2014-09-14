@@ -153,7 +153,7 @@ public class RollingScheduler {
 		if(events.size() > 1) {
 			for(Event ev : events) {
 				ev.setName(event.getName());
-				ev.setName(ev.getName() + " (Part " + part++ + " )");
+				ev.setName(ev.getName() + " (Part " + part++ + ")");
 			}
 		}
 		
