@@ -21,25 +21,7 @@ public class RollingScheduler {
 		Day deadline = new Day(nextEvent.getDeadline());
 		Day current = start;
 		while(current.compareTo(deadline) <= 0) {
-			DateTime dailyStart = current.getCalcStart();
-			DateTime dailyStop = current.getCalcStop(nextEvent.getDeadline());
-			
-			if(dailyStop.isBefore(dailyStart)) {
-				current = current.next();
-				continue;
-			}
-			
-			List<Interval> intervals = calendar.getAvailableIntervals(dailyStart, dailyStop); // TODO: Be the events deadline.
-			
-			for(Interval i : intervals) {
-				if(i.toDuration().getMillis() >= nextEvent.getDuration().getMillis())
-				{
-					DateTime evnt_start = i.getStart();
-					DateTime evnt_stop = evnt_start.plusMillis((int) (i.toDuration().getMillis() - nextEvent.getDuration().getMillis()));
-				
-					times.add(new Interval(evnt_start, evnt_stop));
-				}
-			}
+			times.addAll(getDailyIntervals(calendar, current, nextEvent, settings));
 			
 			current = current.next();
 		}
@@ -47,10 +29,51 @@ public class RollingScheduler {
 		return times;
 	}
 	
-	public static Event scheduleFirst(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
-		List<Interval> intervals = getScheduleIntervals(calendar, start, event, settings);
+	public static Interval getFirstInterval(SchedulingCalendar calendar, Day start, ScheduledEvent nextEvent, SchedulingSettings settings) {
+		Day deadline = new Day(nextEvent.getDeadline());
+		Day current = start;
 		
-		DateTime realStart = intervals.get(0).getStart();
+		while(current.compareTo(deadline) <= 0) {
+			List<Interval> temp = getDailyIntervals(calendar, current, nextEvent, settings);
+			if(temp.size() > 0)
+				return temp.get(0);
+			
+			current = current.next();
+		}
+		
+		return null;
+	}
+	
+	public static List<Interval> getDailyIntervals(SchedulingCalendar calendar, Day current, ScheduledEvent nextEvent, SchedulingSettings settings) {
+		List<Interval> times = new ArrayList<Interval>();
+		
+		
+		DateTime dailyStart = current.getCalcStart();
+		DateTime dailyStop = current.getCalcStop(nextEvent.getDeadline());
+		
+		if(dailyStop.isBefore(dailyStart)) {
+			return new ArrayList<Interval>();
+		}
+		
+		List<Interval> intervals = calendar.getAvailableIntervals(dailyStart, dailyStop); // TODO: Be the events deadline.
+		
+		for(Interval i : intervals) {
+			if(i.toDuration().getMillis() >= nextEvent.getDuration().getMillis())
+			{
+				DateTime evnt_start = i.getStart();
+				DateTime evnt_stop = evnt_start.plusMillis((int) (i.toDuration().getMillis() - nextEvent.getDuration().getMillis()));
+			
+				times.add(new Interval(evnt_start, evnt_stop));
+			}
+		}
+		
+		return times;
+	}
+	
+	public static Event scheduleFirst(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
+		Interval interval = getFirstInterval(calendar, start, event, settings);
+		
+		DateTime realStart = interval.getStart();
 		
 		Event realEvent = new Event(-1L, event.getName(), realStart, realStart.plus(event.getDuration()));
 		return realEvent;
