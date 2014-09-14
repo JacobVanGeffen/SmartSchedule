@@ -59,7 +59,6 @@ public class MainActivity extends Activity {
             switch (v.getId()) {
             case R.id.rlAddTask:
                 if(isEditMode){
-//                    deleteTasks();
                     endEditMode(true);
                     return;
                 }
@@ -106,7 +105,6 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle b) {
         super.onCreate(b);
-        // requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
         Log.wtf("Infinity time", DateTime.now().plusYears(1000)+"");
@@ -170,8 +168,8 @@ public class MainActivity extends Activity {
                     }
                     
                     Period duration = StorageUtil.getDuration(MainActivity.this, task);
-                    Log.wtf("Storage duration", duration+"");
-                    handleScheduledEvent(new ScheduledEvent(task, null, // should be null (or ask the user)
+                    Log.wtf("Storage duration", duration + "");
+                    handleScheduledEvent(new ScheduledEvent(task, null,
                             duration.toStandardDuration()));
                 }
             });
@@ -241,12 +239,12 @@ public class MainActivity extends Activity {
         }
     }
     
-    private String getEmail(){
+    public String getEmail(){
         String storedEmail = StorageUtil.getGoogleAccount(this);
         if(!storedEmail.equals(""))
             return storedEmail;
         
-        Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
+        Pattern emailPattern = Patterns.EMAIL_ADDRESS;
         Account[] accounts = AccountManager.get(this).getAccounts();
         for (Account account : accounts) {
             if (emailPattern.matcher(account.name).matches()) {
@@ -342,8 +340,8 @@ public class MainActivity extends Activity {
     }
 
     private static final String[] options = { "Set Google account", // vals = ______@gmail.com
-            "Set max task time per day", // max time per day per task: vals = 0.5, 1.0, 1.5, 2.0, ... , 24.0
-            "Set laziness" }; // vals = Proactive, Balanced, Procrastinate
+            "Set max task time per day", // max time per day per task: vals = 1, 2, 3, ..., 24
+            "Set laziness" }; // vals = Proactive, Balanced
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -367,6 +365,9 @@ public class MainActivity extends Activity {
             
             Log.wtf("Action", "edit");
             startEditMode();
+            break;
+        case R.id.action_calendar:
+            startActivity(EventPusher.goToCalendarEvent());
             break;
         }
         
@@ -463,7 +464,7 @@ public class MainActivity extends Activity {
             if(e.getName().equals(event))
                 return Duration.millis((int) (e.getEnd().getMillis() - e.getStart().getMillis()));
         }
-        return Period.minutes(10).toStandardDuration(); // default
+        return Duration.standardMinutes(10); // default
     }
     
 }

@@ -1,11 +1,13 @@
 package com.pennapps.smartschedule.scheduler;
 
-import com.pennapps.smartschedule.storage.StorageUtil;
-
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Events;
+
+import com.pennapps.smartschedule.storage.StorageUtil;
 
 public class EventPusher {
 	public static Intent insertEvent(Event event, Context context) {
@@ -19,5 +21,14 @@ public class EventPusher {
 					.putExtra(Events.ACCOUNT_NAME, StorageUtil.getGoogleAccount(context)); // TODO MAKE IT WORK!!
 		
 		return intent;
+	}
+	
+	public static Intent goToCalendarEvent(){
+	    Uri.Builder builder = CalendarContract.CONTENT_URI.buildUpon();
+	    builder.appendPath("time");
+	    ContentUris.appendId(builder, System.currentTimeMillis());
+	    Intent intent = new Intent(Intent.ACTION_VIEW)
+	        .setData(builder.build());
+	    return intent;
 	}
 }
