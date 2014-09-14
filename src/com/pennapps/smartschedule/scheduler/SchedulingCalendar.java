@@ -128,10 +128,14 @@ public class SchedulingCalendar {
     }
     
     public List<Event> getEvents(DateTime start, DateTime end) {
+    	Log.wtf("Event Count", "Total Events: " + events.size());
+    	
         List<Event> occ = new ArrayList<Event>();
         Interval time = new Interval(start, end);
         
         for(Event evnt : events) {
+        	Log.wtf("Event thingy", evnt.getName() + ": " + evnt.getStart() + ", " + evnt.getEnd());
+        	
             Interval eventInterval = new Interval(evnt.getStart(), evnt.getEnd());
             if(eventInterval.overlaps(time) || time.overlaps(eventInterval))
                 occ.add(evnt);

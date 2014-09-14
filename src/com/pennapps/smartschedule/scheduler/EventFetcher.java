@@ -14,6 +14,7 @@ public class EventFetcher {
 	
 	private long calendarID;
 	private ContentResolver resolve;
+	private String email;
 	
 	public static final String[] CALENDAR_PROJECTION = new String[] {
 		Calendars._ID,
@@ -35,9 +36,10 @@ public class EventFetcher {
 		Events.DELETED
 	};
 	
-	public EventFetcher(ContentResolver resolver) {
+	public EventFetcher(ContentResolver resolver, String email) {
 		calendarID = -1L;
 		resolve = resolver;
+		this.email = email;
 	}
 	
 	public long getCalendarID() {
@@ -46,8 +48,7 @@ public class EventFetcher {
 		String selection = "((" + Calendars.ACCOUNT_NAME + " = ?) AND (" 
                 + Calendars.ACCOUNT_TYPE + " = ?) AND ("
                 + Calendars.OWNER_ACCOUNT + " = ?))";
-        String[] selectionArgs = new String[] {"jsvangeffen@gmail.com", "com.google",
-        "jsvangeffen@gmail.com"}; 
+        String[] selectionArgs = new String[] { email, "com.google", email }; 
 		
 		Cursor cur = resolve.query(Calendars.CONTENT_URI, CALENDAR_PROJECTION,
 				selection, selectionArgs, null);
@@ -72,10 +73,12 @@ public class EventFetcher {
 		
 		SchedulingCalendar cal = new SchedulingCalendar(calendarID);
 		while(cur.moveToNext()) {
-			if(cur.getInt(9) == 0) continue;
+			if(cur.getInt(9) == 1) continue;
 			
 			DateTime start = new DateTime(cur.getLong(4));
 			DateTime end = new DateTime(cur.getLong(5));
+			if(end.isBefore(start))
+				end = start.plusHours(1);
 			
 			Event evnt = new Event(cur.getLong(0), cur.getString(1), start, end);
 			

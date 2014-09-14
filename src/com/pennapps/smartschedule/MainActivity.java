@@ -26,6 +26,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.pennapps.smartschedule.scheduler.Day;
 import com.pennapps.smartschedule.scheduler.Event;
 import com.pennapps.smartschedule.scheduler.EventFetcher;
 import com.pennapps.smartschedule.scheduler.EventPusher;
@@ -49,11 +50,12 @@ public class MainActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
             case R.id.rlAddTask:
-                Log.wtf("onclick", "onclick");
+            	testData();
+            	/*
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH); 
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
                 startActivityForResult(intent, RESULT_TAKEEVENT);
-                break;
+                */break;
             }
         }
     };
@@ -87,6 +89,42 @@ public class MainActivity extends Activity {
             layout.addView(split);
         }
     }
+    
+    private void testData() {
+        ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Data structures project due October 15th at 7 p.m. takes 5 hours and 37 minutes");
+        
+        EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
+        fetch.getCalendarID();
+        SchedulingCalendar cal = fetch.getCalendar();
+        
+        // check presets
+        if(scheduledEvent.getDuration() == null) {
+            scheduledEvent.setDuration(getDuration(
+                    cal.getEvents(DateTime.now().minusWeeks(4),
+                            DateTime.now()), scheduledEvent.getName()));
+        }
+
+        boolean split = false;
+        
+        if(split) {
+	        List<Event> events = RollingScheduler.scheduleSplit(cal, Day.today(), scheduledEvent,
+	                new SchedulingSettings());
+	        Log.wtf("EVENTS", "" + events);
+	        for(Event event : events) {
+	        	cal.addEvent(event);
+	
+	            putEvent(event);
+	        }
+        } else {
+        	Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent, new SchedulingSettings());
+        	Log.wtf("EVENT", "" + event);
+        	
+        	cal.addEvent(event);
+        	
+        	putEvent(event);
+        }
+
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -101,7 +139,6 @@ public class MainActivity extends Activity {
         }
     }
     
-    @SuppressWarnings("unused")
     private String getEmail(){
         Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
         Account[] accounts = AccountManager.get(this).getAccounts();
@@ -117,7 +154,7 @@ public class MainActivity extends Activity {
     private void handleSpeechEvent(ArrayList<String> events){
         ScheduledEvent scheduledEvent = TextParser.getScheduledEvent(events);
         
-        EventFetcher fetch = new EventFetcher(getContentResolver());
+        EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
         fetch.getCalendarID();
         SchedulingCalendar cal = fetch.getCalendar();
         
