@@ -22,14 +22,14 @@ public class StorageUtil {
         SharedPreferences prefs = context.getSharedPreferences(pack
                 + ".duration", Context.MODE_PRIVATE);
         prefs.edit().putInt(event, period.getMillis()).commit();
-        Log.wtf("New duration", Period.millis(prefs.getInt(event, 0))+"");
+        Log.wtf("New duration", Period.millis(prefs.getInt(event, 1000 * 60 * 15))+"");
     }
 
     public static Period getDuration(Context context, String event) {
         SharedPreferences prefs = context.getSharedPreferences(pack
                 + ".duration", Context.MODE_PRIVATE);
         Log.wtf("Get duration", Period.millis(prefs.getInt(event, 0))+"");
-        return Period.millis(prefs.getInt(event, 0));
+        return Period.millis(prefs.getInt(event, 1000 * 60 * 15));
     }
 
     public static Set<String> getRecentTasks(Context context) {
