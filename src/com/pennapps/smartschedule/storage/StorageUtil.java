@@ -39,24 +39,31 @@ public class StorageUtil {
                 Context.MODE_PRIVATE).getString("acct", "");
     }
 
-    public static void setMaxTime(Context context, float val) {
+    public static void setMaxTime(Context context, int val) {
         context.getSharedPreferences(pack + ".max_time", Context.MODE_PRIVATE)
-                .edit().putFloat("max_time", val).commit();
+                .edit().putInt("max_time", val).commit();
     }
 
-    public static float getMaxTime(Context context) {
+    public static int getMaxTime(Context context) {
         return context.getSharedPreferences(pack + ".max_time",
-                Context.MODE_PRIVATE).getFloat("max_time", 0);
+                Context.MODE_PRIVATE).getInt("max_time", 1);
     }
 
-    public static void setLaziness(Context context, String laziness) {
+    public static void setLaziness(Context context, boolean isProactive) {
         context.getSharedPreferences(pack + ".laziness", Context.MODE_PRIVATE)
-                .edit().putString("laziness", laziness).commit();
+                .edit().putBoolean("laziness", isProactive).commit();
     }
 
-    public static String getLaziness(Context context) {
+    /**
+     * @return True if proactice, false if balanced
+     */
+    public static boolean getLaziness(Context context) {
         return context.getSharedPreferences(pack + ".laziness",
-                Context.MODE_PRIVATE).getString("laziness", "");
+                Context.MODE_PRIVATE).getBoolean("laziness", false);
+    }
+    
+    public static String getLaziness(boolean isProactive){
+        return isProactive ? "Proactive" : "Balanced";
     }
 
 }

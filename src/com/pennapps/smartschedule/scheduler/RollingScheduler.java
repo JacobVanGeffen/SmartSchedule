@@ -6,7 +6,6 @@ import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.Duration;
 
 import android.util.Log;
 

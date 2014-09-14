@@ -13,13 +13,14 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Patterns;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,6 +28,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 
 import com.pennapps.smartschedule.scheduler.Day;
@@ -89,6 +91,8 @@ public class MainActivity extends Activity {
     private void loadRecentTasks(){
         LinearLayout layout = (LinearLayout) findViewById(R.id.llRecentTasks);
         for (final String task : StorageUtil.getRecentTasks(this)){
+            if(task.contains("(Part"))
+                continue;
             TextView taskView = new TextView(this);
             LinearLayout.LayoutParams taskParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             taskParams.setMargins(20, 20, 20, 20);
@@ -136,7 +140,7 @@ public class MainActivity extends Activity {
         
         if(split) {
 	        List<Event> events = RollingScheduler.scheduleSplit(cal, Day.today(), scheduledEvent,
-	                new SchedulingSettings());
+	                new SchedulingSettings(this));
 	        Log.wtf("EVENTS", "" + events);
 	        for(Event event : events) {
 	        	cal.addEvent(event);
@@ -144,7 +148,7 @@ public class MainActivity extends Activity {
 	            putEvent(event);
 	        }
         } else {
-        	Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent, new SchedulingSettings());
+        	Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent, new SchedulingSettings(this));
         	Log.wtf("EVENT", "" + event);
         	
         	cal.addEvent(event);
@@ -168,12 +172,18 @@ public class MainActivity extends Activity {
     }
     
     private String getEmail(){
+        String storedEmail = StorageUtil.getGoogleAccount(this);
+        if(!storedEmail.equals(""))
+            return storedEmail;
+        
         Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
         Account[] accounts = AccountManager.get(this).getAccounts();
         for (Account account : accounts) {
             if (emailPattern.matcher(account.name).matches()) {
-                if(account.name.contains("@gmail.com"))
+                if(account.name.contains("@gmail.com")){
+                    StorageUtil.setGoogleAccount(this, account.name);
                     return account.name;
+                }
             }
         }
         return "";
@@ -196,7 +206,7 @@ public class MainActivity extends Activity {
             Log.wtf("Duration", scheduledEvent.getDuration()+"");
         
         Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
-                new SchedulingSettings());
+                new SchedulingSettings(this));
         cal.addEvent(event);
 
         putEvent(event);
@@ -210,7 +220,7 @@ public class MainActivity extends Activity {
         SchedulingCalendar cal = fetch.getCalendar();
         
         Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
-                new SchedulingSettings());
+                new SchedulingSettings(this));
         cal.addEvent(event);
 
         putEvent(event);
@@ -235,17 +245,80 @@ public class MainActivity extends Activity {
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
+        AlertDialog.Builder builder = null;
         switch(getIndex(item.getTitle()+"")){
         case 0:
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            EditText text = new EditText(this);
+            builder = new AlertDialog.Builder(this);
+            final EditText editText = new EditText(this);
+            editText.setText(getEmail());
             
             builder.setTitle("Google Account");
-            builder.setView(text);
+            builder.setView(editText);
+            
+            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    StorageUtil.setGoogleAccount(MainActivity.this, editText.getText().toString());
+                }
+            });
+            
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // canceled
+                }
+            });
+            
+            builder.show();
             return true;
+            
         case 1:
+            builder = new AlertDialog.Builder(this);
+            final NumberPicker picker = new NumberPicker(this);
+            picker.setMinValue(1);
+            picker.setMaxValue(24);
+            picker.setValue(StorageUtil.getMaxTime(this));
+            
+            builder.setTitle("Max time spent on a task per day (hours)");
+            builder.setView(picker);
+            
+            builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    StorageUtil.setMaxTime(MainActivity.this, picker.getValue());
+                }
+            });
+            
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // canceled
+                }
+            });
+            
+            builder.show();
             return true;
         case 2:
+            builder = new AlertDialog.Builder(this);
+            
+            builder.setTitle("How large tasks are planned");
+            builder.setMessage("Current: "+StorageUtil.getLaziness(StorageUtil.getLaziness(this)));
+            
+            builder.setNegativeButton(StorageUtil.getLaziness(true), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    StorageUtil.setLaziness(MainActivity.this, true);
+                }
+            });
+            
+            builder.setNeutralButton(StorageUtil.getLaziness(false), new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    StorageUtil.setLaziness(MainActivity.this, false);
+                }
+            });
+            
+            builder.setPositiveButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // canceled
+                }
+            });
+            
+            builder.show();
             return true;
         default:
             return super.onOptionsItemSelected(item);

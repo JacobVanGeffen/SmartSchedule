@@ -2,6 +2,10 @@ package com.pennapps.smartschedule.scheduler;
 
 import org.joda.time.Period;
 
+import android.content.Context;
+
+import com.pennapps.smartschedule.storage.StorageUtil;
+
 public class SchedulingSettings {
 	private boolean splittable;
 	private boolean loadBalancing;
@@ -10,10 +14,10 @@ public class SchedulingSettings {
 	private Period minimumLength;
 	private Period maximumLength;
 	
-	public SchedulingSettings() {
-		splittable = loadBalancing = false;
+	public SchedulingSettings(Context context) { // TODO all events > 1 hour should be splittable
+		splittable = loadBalancing = !StorageUtil.getLaziness(context);
 		minimumLength = Period.minutes(15);
-		maximumLength = Period.hours(2);
+		maximumLength = Period.hours(StorageUtil.getMaxTime(context));
 	}
 	
 	public boolean isLoadBalanced() {
