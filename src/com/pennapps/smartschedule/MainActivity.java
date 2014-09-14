@@ -196,7 +196,6 @@ public class MainActivity extends Activity {
         }
     }
     
-    @SuppressWarnings("unused")
     private void testData() {
         ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Data structures project due in 4 days takes 7 hours and 53 minutes");
         
@@ -290,6 +289,17 @@ public class MainActivity extends Activity {
         if (settings.isSplittable()) {
             List<Event> listEvents = RollingScheduler.scheduleSplit(cal,
                     Day.today(), scheduledEvent, settings);
+            
+            Duration totalScheduled = SchedulingCalendar.sumLists(listEvents);
+            if(totalScheduled.getMillis() < scheduledEvent.getDuration().getMillis()) {
+            	AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+                dialog.setTitle("Cannot schedule task");
+                dialog.setMessage("Insufficient time available on calendar");
+                dialog.setNegativeButton("Ok", null);
+                dialog.show();
+                return;	
+            }
+            
             Collections.reverse(listEvents);
             for (Event event : listEvents) {
                 cal.addEvent(event);
@@ -304,7 +314,7 @@ public class MainActivity extends Activity {
         if(event == null){
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             dialog.setTitle("Cannot schedule task");
-            dialog.setMessage("No time available on calendar");
+            dialog.setMessage("Insufficient time available on calendar");
             dialog.setNegativeButton("Ok", null);
             dialog.show();
             return;

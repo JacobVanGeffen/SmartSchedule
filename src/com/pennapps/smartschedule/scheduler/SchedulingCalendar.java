@@ -22,6 +22,14 @@ public class SchedulingCalendar {
         return new Duration(total);
     }
     
+    public static Duration sumLists(List<Event> events) {
+    	long total = 0L;
+    	for(Event evnt : events)
+    		total += new Duration(evnt.getStart(), evnt.getEnd()).getMillis();
+    	
+    	return new Duration(total);
+    }
+    
     public static List<Interval> flatten(List<Interval> inputs) {
     	List<Interval> flattened = new ArrayList<Interval>(inputs);
     	if(inputs.size() == 0) return flattened;
