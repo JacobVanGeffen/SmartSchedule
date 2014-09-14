@@ -23,15 +23,15 @@ public class SchedulingCalendar {
     }
     
     public static List<Interval> flatten(List<Interval> inputs) {
-    	List<Interval> flattened = new ArrayList<Interval>();
+    	List<Interval> flattened = new ArrayList<Interval>(inputs);
     	if(inputs.size() == 0) return flattened;
     	
         // "Flatten" the intervals to have a single group of intervals.
-        Iterator<Interval> flattener = inputs.iterator();
+        Iterator<Interval> flattener = flattened.iterator();
         Interval current = flattener.next();
         while(flattener.hasNext()) {
             Interval next = flattener.next();
-            if(current.overlaps(next)) {
+            if(current.overlaps(next) || current.abuts(next)) {
                 flattener.remove();
                 current = current.withEndMillis(Math.max(current.getEndMillis(), next.getEndMillis()));
             }
