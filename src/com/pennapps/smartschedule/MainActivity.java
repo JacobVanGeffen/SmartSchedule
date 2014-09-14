@@ -13,9 +13,9 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
@@ -79,6 +79,10 @@ public class MainActivity extends Activity {
         Log.wtf("Infinity time", DateTime.now().plusYears(1000)+"");
         
         findViewById(R.id.rlAddTask).setOnClickListener(listener);
+        ((TextView) findViewById(R.id.tvRecentTasks)).setTypeface(Typeface
+                .createFromAsset(getAssets(), "Roboto-Light.ttf"));
+        ((TextView) findViewById(R.id.tvAddTask)).setTypeface(Typeface
+                .createFromAsset(getAssets(), "Roboto-Light.ttf"));
         loadRecentTasks();
     }
 
@@ -109,12 +113,13 @@ public class MainActivity extends Activity {
                             duration.toStandardDuration()));
                 }
             });
+            taskView.setTypeface(Typeface.createFromAsset(getAssets(), "Roboto-Light.ttf"));
             
             View split = new View(this);
             LinearLayout.LayoutParams splitParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 2);
             split.setPadding(10, 10, 10, 10);
             split.setLayoutParams(splitParams);
-            split.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
+            split.setBackgroundColor(getResources().getColor(R.color.light_green));
             
             layout.addView(taskView);
             layout.addView(split);
@@ -145,7 +150,7 @@ public class MainActivity extends Activity {
 	        for(Event event : events) {
 	        	cal.addEvent(event);
 	
-	            putEvent(event);
+	            putEvent(event, false);
 	        }
         } else {
         	Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent, new SchedulingSettings(this));
@@ -153,7 +158,7 @@ public class MainActivity extends Activity {
         	
         	cal.addEvent(event);
         	
-        	putEvent(event);
+        	putEvent(event, false);
         }
 
     }
@@ -192,6 +197,7 @@ public class MainActivity extends Activity {
     private void handleSpeechEvent(ArrayList<String> events){
         ScheduledEvent scheduledEvent = TextParser.getScheduledEvent(events);
         Log.wtf("Scheduled event", scheduledEvent+"") ;
+        boolean setDur = true;
         
         EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
         fetch.getCalendarID();
@@ -199,9 +205,11 @@ public class MainActivity extends Activity {
         
         // check presets
         if(scheduledEvent.getDuration() == null){
-            scheduledEvent.setDuration(getDuration(
+            scheduledEvent.setDuration(/*getDuration(
                     cal.getEvents(DateTime.now().minusWeeks(4),
-                            DateTime.now()), scheduledEvent.getName()));
+                            DateTime.now()), scheduledEvent.getName())*/
+                    StorageUtil.getDuration(this, scheduledEvent.getName()).toStandardDuration());
+            setDur = false;
         }
         else 
             Log.wtf("Duration", scheduledEvent.getDuration()+"");
@@ -220,7 +228,7 @@ public class MainActivity extends Activity {
         
         cal.addEvent(event);
 
-        putEvent(event);
+        putEvent(event, setDur);
     }
     
     private void handleScheduledEvent(ScheduledEvent scheduledEvent){
@@ -244,11 +252,12 @@ public class MainActivity extends Activity {
         
         cal.addEvent(event);
 
-        putEvent(event);
+        putEvent(event, false);
     }
     
-    private void putEvent(Event event){
-        StorageUtil.putDuration(this, event.getName(), Period
+    private void putEvent(Event event, boolean setDur){
+        if(setDur)
+            StorageUtil.putDuration(this, event.getName(), Period
                 .millis((int) (event.getEnd().getMillis() - event.getStart().getMillis())));
         startActivityForResult(EventPusher.insertEvent(event), RESULT_EVENTPUSHED);
     }

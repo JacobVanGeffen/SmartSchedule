@@ -6,20 +6,24 @@ import org.joda.time.Period;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 public class StorageUtil {
 
     private static final String pack = "com.pennapps.smartschedule";
 
     public static void putDuration(Context context, String event, Period period) {
+        Log.wtf("Duration prefs", event+" "+period);
         SharedPreferences prefs = context.getSharedPreferences(pack
                 + ".duration", Context.MODE_PRIVATE);
         prefs.edit().putInt(event, period.getMillis()).commit();
+        Log.wtf("New duration", Period.millis(prefs.getInt(event, 0))+"");
     }
 
     public static Period getDuration(Context context, String event) {
         SharedPreferences prefs = context.getSharedPreferences(pack
                 + ".duration", Context.MODE_PRIVATE);
+        Log.wtf("Get duration", Period.millis(prefs.getInt(event, 0))+"");
         return Period.millis(prefs.getInt(event, 0));
     }
 

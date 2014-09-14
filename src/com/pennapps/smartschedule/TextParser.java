@@ -14,7 +14,8 @@ import com.pennapps.smartschedule.scheduler.ScheduledEvent;
 @SuppressLint("DefaultLocale")
 public class TextParser {
 
-    public static final String[] eventNamePostMarkers = { "on", "due", },
+    public static final String[] eventNamePostMarkers = { "on", "due", "take",
+            "last", "for", "spend", "due", "finish by", },
             eventNamePreMarkers = { "have", "there's", "got", "hey", "schedule" },
             deadlinePreMarkers = { "due", "finish by", "on" },
             deadlineTimeMarkers = { "at", "after" }, durationPreMarkers = {
@@ -51,6 +52,7 @@ public class TextParser {
     }
 
     public static ScheduledEvent getScheduledEvent(String speech) {
+        Log.wtf("Speech", speech);
         speech = speech.toLowerCase();
 
         String name = null, deadline = null, duration = null;
@@ -72,7 +74,7 @@ public class TextParser {
 
         event = new ScheduledEvent(name);
 
-        for (String splitter : eventNamePostMarkers) {
+        for (String splitter : deadlinePreMarkers) {
             if (deadline == null
                     || deadline.length() > speech.split(splitter)[speech
                             .split(splitter).length - 1].length()) {
@@ -86,6 +88,8 @@ public class TextParser {
         deadline = deadline.toLowerCase();
         deadline = deadline.trim();
 
+        Log.wtf("deadline", deadline);
+        
         event.setDeadline(interpretDeadline(deadline));
 
         for (String splitter : durationPreMarkers) {
@@ -97,12 +101,11 @@ public class TextParser {
             }
         }
 
-        if(duration.equals(speech))
-        {
+        if (duration.equals(speech)) {
             event.setDuration(null);
             return event;
         }
-        
+
         event.setDuration(time(duration));
 
         return event;
@@ -120,10 +123,10 @@ public class TextParser {
      * @return
      */
     private static DateTime interpretDeadline(String deadline) {
-//        Log.wtf("Deadline", deadline);
+        // P("Deadline", deadline);
         DateTime ret = DateTime.now(), orig = ret;
 
-//        Log.wtf("orig", orig + "");
+        // Log.wtf("orig", orig + "");
 
         deadline = deadline.toLowerCase().trim();
 
@@ -182,7 +185,7 @@ public class TextParser {
             ret = ret.withDayOfMonth(monthDay(deadline));
         }
 
-//        Log.wtf("ret", ret + "");
+        // Log.wtf("ret", ret + "");
 
         return ret.equals(orig) ? null : ret;
     }
