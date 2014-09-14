@@ -73,23 +73,34 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.rlAddTask).setOnClickListener(listener);
+        loadRecentTasks();
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        loadRecentTasks();
+        // loadRecentTasks();
     }
     
     private void loadRecentTasks(){
         LinearLayout layout = (LinearLayout) findViewById(R.id.llRecentTasks);
-        for (String task : StorageUtil.getRecentTasks(this)){
+        for (final String task : StorageUtil.getRecentTasks(this)){
             TextView taskView = new TextView(this);
             LinearLayout.LayoutParams taskParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             taskParams.setMargins(20, 20, 20, 20);
             taskView.setText(task);
             taskView.setTextSize(30);
             taskView.setLayoutParams(taskParams);
+            taskView.setBackgroundResource(R.drawable.recent_task);
+            taskView.setClickable(true);
+            taskView.setOnClickListener(new OnClickListener() {
+                public void onClick(View v) {
+                    Period duration = StorageUtil.getDuration(MainActivity.this, task);
+                    Log.wtf("Storage duration", duration+"");
+                    handleScheduledEvent(new ScheduledEvent(task, null, // should be null (or ask the user)
+                            duration.toStandardDuration()));
+                }
+            });
             
             View split = new View(this);
             LinearLayout.LayoutParams splitParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 2);
@@ -175,10 +186,21 @@ public class MainActivity extends Activity {
             scheduledEvent.setDuration(getDuration(
                     cal.getEvents(DateTime.now().minusWeeks(4),
                             DateTime.now()), scheduledEvent.getName()));
-            //TODO problem here - getEvents returns an empty list
         }
-        else Log.wtf("Duration", scheduledEvent.getDuration()+"");
+        else 
+            Log.wtf("Duration", scheduledEvent.getDuration()+"");
         
+        Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
+                new SchedulingSettings());
+        cal.addEvent(event);
+
+        putEvent(event);
+    }
+    
+    private void handleScheduledEvent(ScheduledEvent scheduledEvent){
+        EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
+        fetch.getCalendarID();
+        SchedulingCalendar cal = fetch.getCalendar();
         
         Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
                 new SchedulingSettings());
@@ -233,7 +255,7 @@ public class MainActivity extends Activity {
             if(e.getName().equals(event))
                 return Duration.millis((int) (e.getEnd().getMillis() - e.getStart().getMillis()));
         }
-        return Period.minutes(10); // default
+        return Period.minutes(10).toStandardDuration(); // default
     }
     
 }

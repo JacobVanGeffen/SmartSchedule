@@ -48,7 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="#ff99cc00"
+        android:background="@drawable/add_task"
         android:padding="10dp"
         android:clickable="true" >
 

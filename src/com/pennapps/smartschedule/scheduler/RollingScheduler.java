@@ -37,7 +37,7 @@ public class RollingScheduler {
 			List<Interval> temp = getDailyIntervals(calendar, current, nextEvent, settings);
 			if(temp.size() > 0)
 				return temp.get(0);
-			
+
 			current = current.next();
 		}
 		
