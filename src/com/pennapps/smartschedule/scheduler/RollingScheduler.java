@@ -97,7 +97,13 @@ public class RollingScheduler {
 					dailyLimit = new Duration(dailyLimit.getMillis() - realDuration);
 					eventTime = new Duration(eventTime.getMillis() - realDuration);
 					
-					Event eventFragment = new Event(-1, event.getName() + " (Part " + part + ")", interval.getStart(), 
+					String name = "";
+					if(part == 1 && eventTime.getMillis() == 0)
+						name = event.getName();
+					else
+						name = event.getName() + " (Part " + part + ")";
+					
+					Event eventFragment = new Event(-1, name, interval.getStart(), 
 							interval.getStart().plus(realDuration));
 					part++;
 					
