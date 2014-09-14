@@ -9,16 +9,54 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
 public class SchedulingCalendar {
-    public static Period sum(List<Interval> intervals) {
+    public static Duration sum(List<Interval> intervals) {
         long total = 0L;
         for(Interval dur : intervals)
             total += dur.toDurationMillis();
         
-        return new Period(total);
+        return new Duration(total);
+    }
+    
+    public static List<Interval> flatten(List<Interval> inputs) {
+    	List<Interval> flattened = new ArrayList<Interval>();
+    	
+        // "Flatten" the intervals to have a single group of intervals.
+        Iterator<Interval> flattener = flattened.iterator();
+        Interval current = flattener.next();
+        while(flattener.hasNext()) {
+            Interval next = flattener.next();
+            if(current.overlaps(next)) {
+                flattener.remove();
+                current = current.withEndMillis(Math.max(current.getEndMillis(), next.getEndMillis()));
+            }
+            else
+            {
+                current = next;
+            }
+        }
+        
+        return flattened;
+    }
+    
+    public static List<Event> flattenEvents(List<Event> input) {
+        List<Interval> flattened = new ArrayList<Interval>();
+        for(Event evnt : input) {
+            DateTime e_start = new DateTime(evnt.getStart().getMillis());
+            DateTime e_end = new DateTime(evnt.getEnd().getMillis());
+            flattened.add(new Interval(e_start, e_end));
+        }
+        
+        List<Event> output = new ArrayList<Event>();
+        List<Interval> res = flatten(flattened);
+        for(Interval intv : res)
+        	output.add(new Event(-1, "Temporary Name", intv.getStart(), intv.getEnd()));
+        
+        return output;
     }
     
     private long calendarID;
@@ -71,19 +109,21 @@ public class SchedulingCalendar {
         return getAvailableIntervals(day.getUseStart(), day.getUseEnd());
     }
     
-    public Map<Day, Period> getFreeTime(Day start, Day stop) {
-        Map<Day, Period> free = new TreeMap<Day, Period>();
+    public Map<Day, Duration> getFreeTime(Day start, Day stop, DateTime deadline) {
+        Map<Day, Duration> free = new TreeMap<Day, Duration>();
         Day current = start;
         while(current.compareTo(stop) <= 1) {
-            DateTime e_start = current.getCalcStart();
-            DateTime e_stop = current.getUseEnd();
-            
-            free.put(current, sum(getAvailableIntervals(e_start, e_stop)));
-            
-            current = current.next();
+            free.put(current, getFreeTime(current, deadline));
         }
         
         return free;
+    }
+    
+    public Duration getFreeTime(Day day, DateTime deadline) {
+    	DateTime e_start = day.getCalcStart();
+        DateTime e_stop = day.getCalcStop(deadline);
+        
+        return sum(getAvailableIntervals(e_start, e_stop));
     }
     
     public List<Interval> getAvailableIntervals(DateTime start, DateTime end) {
@@ -94,7 +134,7 @@ public class SchedulingCalendar {
             ints.add(new Interval(start, end));
             return ints;
         }
-        
+    	
         List<Interval> flattened = new ArrayList<Interval>();
         for(Event evnt : events) {
             DateTime e_start = new DateTime(Math.max(evnt.getStart().getMillis(), start.getMillis()));

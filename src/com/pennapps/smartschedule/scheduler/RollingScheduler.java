@@ -1,6 +1,7 @@
 package com.pennapps.smartschedule.scheduler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -95,47 +96,62 @@ public class RollingScheduler {
 		
 		Day current = start;
 		Day stop = new Day(event.getDeadline());
+		
+		Duration runoverTime = new Duration(0L);
 		while(current.compareTo(stop) <= 0 && eventTime.getMillis() > 0) {
 			DateTime e_start = current.getCalcStart();
 			DateTime e_stop = current.getCalcStop(event.getDeadline());
-			
-			Log.wtf("Day Test", "" + e_start + " : " + e_stop);
 			
 			if(e_start.isAfter(e_stop)) {
 				current = current.next();
 				continue;
 			}
 			
-			Log.wtf("Day Test Passed", "Passed, moving on with intervals.");
-			
 			List<Interval> intervals = calendar.getAvailableIntervals(e_start, e_stop);
-			Log.wtf("Intervals", "" + intervals);
-			
-			Duration dailyLimit = new Duration(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Duration.standardDays(1).getMillis()));		
+
+			Duration dailyLimit = new Duration(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Duration.standardDays(1).getMillis()))
+									.plus(runoverTime);		
 			for(Interval interval : intervals) {
 				if(dailyLimit.getMillis() <= 0) break;
 				
-				Log.wtf("Interval comparisons:", interval.toDurationMillis() + " : " + settings.getMinimumLength().getMillis());
 				if(interval.toDurationMillis() > settings.getMinimumLength().getMillis()) {
 					long realDuration = Math.min(dailyLimit.getMillis(), interval.toDurationMillis());
 					dailyLimit = new Duration(dailyLimit.getMillis() - realDuration);
 					eventTime = new Duration(eventTime.getMillis() - realDuration);
 					
-					String name = "";
-					if(part == 1 && eventTime.getMillis() <= 0)
-						name = event.getName();
-					else
-						name = event.getName() + " (Part " + part + ")";
-					
-					Event eventFragment = new Event(-1, name, interval.getStart(), 
+					Event eventFragment = new Event(-1, event.getName(), interval.getStart(), 
 							interval.getStart().plus(realDuration));
-					part++;
 					
 					events.add(eventFragment);
 				}
+				
+				runoverTime = dailyLimit;
 			}
 			
 			current = current.next();
+		}
+		
+		if(events.size() == 0) {
+			return events;
+		}
+		
+		if(eventTime.getMillis() > 0 && settings.isLoadBalanced()) {
+			ScheduledEvent tempEvent = new ScheduledEvent(event.getName(), event.getDeadline(), eventTime);
+			List<Event> res = scheduleSplit(calendar, start, tempEvent, settings);
+			
+			if(res.size() > 0) {
+				events.addAll(res);
+				events = SchedulingCalendar.flattenEvents(events);
+			}
+		}
+		
+		Collections.sort(events);
+		
+		if(events.size() > 1) {
+			for(Event ev : events) {
+				ev.setName(event.getName());
+				ev.setName(ev.getName() + " (Part " + part++ + " )");
+			}
 		}
 		
 		return events;
