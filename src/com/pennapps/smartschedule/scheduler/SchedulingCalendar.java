@@ -24,6 +24,7 @@ public class SchedulingCalendar {
     
     public static List<Interval> flatten(List<Interval> inputs) {
     	List<Interval> flattened = new ArrayList<Interval>();
+    	if(inputs.size() == 0) return flattened;
     	
         // "Flatten" the intervals to have a single group of intervals.
         Iterator<Interval> flattener = flattened.iterator();
