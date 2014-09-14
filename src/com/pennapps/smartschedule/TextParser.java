@@ -97,6 +97,12 @@ public class TextParser {
             }
         }
 
+        if(duration.equals(speech))
+        {
+            event.setDuration(null);
+            return event;
+        }
+        
         event.setDuration(time(duration));
 
         return event;
@@ -133,7 +139,7 @@ public class TextParser {
 
         }
 
-        if (deadline.matches("day")) { // "in 5 days..." or "in a day"
+        if (deadline.matches(".*\\Wday.*")) { // "in 5 days..." or "in a day"
             int start = deadline.indexOf("in"), end = deadline.indexOf("day");
             if (start != -1)
                 ret = ret.plusDays(num(deadline.substring(start, end)));

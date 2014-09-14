@@ -13,6 +13,7 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,7 +21,6 @@ import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Patterns;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -191,6 +191,7 @@ public class MainActivity extends Activity {
     
     private void handleSpeechEvent(ArrayList<String> events){
         ScheduledEvent scheduledEvent = TextParser.getScheduledEvent(events);
+        Log.wtf("Scheduled event", scheduledEvent+"") ;
         
         EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
         fetch.getCalendarID();
@@ -207,13 +208,23 @@ public class MainActivity extends Activity {
         
         Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
                 new SchedulingSettings(this));
+        
+        if(event == null){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            dialog.setTitle("Cannot schedule task");
+            dialog.setMessage("No space available on calendar");
+            dialog.setNegativeButton("Ok", null);
+            dialog.show();
+            return;
+        }
+        
         cal.addEvent(event);
 
         putEvent(event);
     }
     
     private void handleScheduledEvent(ScheduledEvent scheduledEvent){
-        Log.wtf("Scheduled deadline", scheduledEvent.getDeadline()+"") ;
+        Log.wtf("Scheduled event", scheduledEvent+"") ;
         
         EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
         fetch.getCalendarID();
@@ -221,6 +232,16 @@ public class MainActivity extends Activity {
         
         Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
                 new SchedulingSettings(this));
+        
+        if(event == null){
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+            dialog.setTitle("Cannot schedule task");
+            dialog.setMessage("No space available on calendar");
+            dialog.setNegativeButton("Ok", null);
+            dialog.show();
+            return;
+        }
+        
         cal.addEvent(event);
 
         putEvent(event);

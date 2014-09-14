@@ -6,7 +6,6 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
-import android.util.Log;
 
 public class EventFetcher {
 	public static String TEST_ACCOUNT = "blacksmithgu@gmail.com";

@@ -72,6 +72,9 @@ public class RollingScheduler {
 	public static Event scheduleFirst(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
 		Interval interval = getFirstInterval(calendar, start, event, settings);
 		
+		if(interval == null)
+		    return null;
+		
 		DateTime realStart = interval.getStart();
 		
 		Event realEvent = new Event(-1L, event.getName(), realStart, realStart.plus(event.getDuration()));

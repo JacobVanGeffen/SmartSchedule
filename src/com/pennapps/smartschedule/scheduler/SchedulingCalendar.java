@@ -12,8 +12,6 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
-import android.util.Log;
-
 public class SchedulingCalendar {
     public static Period sum(List<Interval> intervals) {
         long total = 0L;
