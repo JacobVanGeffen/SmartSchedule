@@ -34,6 +34,8 @@ public class ScheduledEvent {
 	
 	public ScheduledEvent setDeadline(DateTime dead) {
 		this.deadline = dead;
+		if(deadline == null)
+		    deadline = DateTime.now().plusYears(1000);
 		
 		return this;
 	}

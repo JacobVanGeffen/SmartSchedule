@@ -57,6 +57,11 @@ public class MainActivity extends Activity {
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
                 startActivityForResult(intent, RESULT_TAKEEVENT);
                 */break;
+//                startActivityForResult(intent, RESULT_TAKEEVENT);
+//                ArrayList<String> stuff = new ArrayList<String>();
+//                stuff.add("Data structures project due Friday at 5 p.m. takes 5 hours 37 minutes");
+//                handleSpeechEvent(stuff);
+//                break;
             }
         }
     };
@@ -68,7 +73,11 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.rlAddTask).setOnClickListener(listener);
-        
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
         loadRecentTasks();
     }
     
@@ -76,15 +85,17 @@ public class MainActivity extends Activity {
         LinearLayout layout = (LinearLayout) findViewById(R.id.llRecentTasks);
         for (String task : StorageUtil.getRecentTasks(this)){
             TextView taskView = new TextView(this);
+            LinearLayout.LayoutParams taskParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+            taskParams.setMargins(20, 20, 20, 20);
             taskView.setText(task);
-            taskView.setTextSize(20);
-            taskView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+            taskView.setTextSize(30);
+            taskView.setLayoutParams(taskParams);
             
             View split = new View(this);
-            LinearLayout.LayoutParams splitParams = new LinearLayout.LayoutParams(2, LayoutParams.MATCH_PARENT);
-            splitParams.setMargins(10, 0, 10, 0);
+            LinearLayout.LayoutParams splitParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 2);
+            split.setPadding(10, 10, 10, 10);
             split.setLayoutParams(splitParams);
-            split.setBackgroundColor(0xff7f7f7f);
+            split.setBackgroundColor(getResources().getColor(android.R.color.darker_gray));
             
             layout.addView(taskView);
             layout.addView(split);
@@ -164,8 +175,9 @@ public class MainActivity extends Activity {
             scheduledEvent.setDuration(getDuration(
                     cal.getEvents(DateTime.now().minusWeeks(4),
                             DateTime.now()), scheduledEvent.getName()));
+            //TODO problem here - getEvents returns an empty list
         }
-
+        else Log.wtf("Duration", scheduledEvent.getDuration()+"");
         
         
         Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
@@ -217,10 +229,11 @@ public class MainActivity extends Activity {
     private static Duration getDuration(List<Event> events, String event){
         Collections.reverse(events);
         for(Event e : events){
+            Log.wtf("Event names", e.getName()+" "+event);
             if(e.getName().equals(event))
                 return Duration.millis((int) (e.getEnd().getMillis() - e.getStart().getMillis()));
         }
-        return null;
+        return Period.minutes(10); // default
     }
     
 }
