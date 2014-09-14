@@ -1,8 +1,9 @@
 package com.pennapps.smartschedule.scheduler;
 
-import org.joda.time.Period;
+import org.joda.time.Duration;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.pennapps.smartschedule.storage.StorageUtil;
 
@@ -11,13 +12,15 @@ public class SchedulingSettings {
 	private boolean loadBalancing;
 	private double weekendBias = 0.50;
 	
-	private Period minimumLength;
-	private Period maximumLength;
+	private Duration minimumLength;
+	private Duration maximumLength;
 	
-	public SchedulingSettings(Context context) { // TODO all events > 1 hour should be splittable
+	public SchedulingSettings(Context context) {
 		splittable = loadBalancing = !StorageUtil.getLaziness(context);
-		minimumLength = Period.minutes(15);
-		maximumLength = Period.hours(StorageUtil.getMaxTime(context));
+		Log.wtf("Banacing", loadBalancing+"");
+		minimumLength = Duration.standardMinutes(15);
+		maximumLength = Duration.standardHours(StorageUtil.getMaxTime(context));
+		Log.wtf("Max length", maximumLength+"");
 	}
 	
 	public boolean isLoadBalanced() {
@@ -49,18 +52,18 @@ public class SchedulingSettings {
 		
 		return this;
 	}
-	public Period getMinimumLength() {
+	public Duration getMinimumLength() {
 		return minimumLength;
 	}
-	public SchedulingSettings setMinimumLength(Period minimumLength) {
+	public SchedulingSettings setMinimumLength(Duration minimumLength) {
 		this.minimumLength = minimumLength;
 		
 		return this;
 	}
-	public Period getMaximumLength() {
+	public Duration getMaximumLength() {
 		return maximumLength;
 	}
-	public SchedulingSettings setMaximumLength(Period maximumLength) {
+	public SchedulingSettings setMaximumLength(Duration maximumLength) {
 		this.maximumLength = maximumLength;
 		
 		return this;

@@ -14,12 +14,12 @@ import com.pennapps.smartschedule.scheduler.ScheduledEvent;
 @SuppressLint("DefaultLocale")
 public class TextParser {
 
-    public static final String[] eventNamePostMarkers = { "on", "due", "take",
-            "last", "for", "spend", "due", "finish by", },
+    public static final String[] 
+            eventNamePostMarkers = { "on", "due", "take", "last", "for", "spend", "due", "finish by", },
             eventNamePreMarkers = { "have", "there's", "got", "hey", "schedule" },
             deadlinePreMarkers = { "due", "finish by", "on" },
-            deadlineTimeMarkers = { "at", "after" }, durationPreMarkers = {
-                    "take", "last", "for", "spend" };
+            deadlineTimeMarkers = { "at", "after" }, 
+            durationPreMarkers = { "take", "last", "for", "spend" };
 
     public static ScheduledEvent getScheduledEvent(ArrayList<String> speech) {
         double maxScore = 0;

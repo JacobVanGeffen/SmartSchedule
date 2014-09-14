@@ -12,6 +12,11 @@ public class StorageUtil {
 
     private static final String pack = "com.pennapps.smartschedule";
 
+    public static void removeDuration(Context context, String event){
+        SharedPreferences prefs = context.getSharedPreferences(pack+".duration", Context.MODE_PRIVATE);
+        prefs.edit().remove(event).commit();
+    }
+    
     public static void putDuration(Context context, String event, Period period) {
         Log.wtf("Duration prefs", event+" "+period);
         SharedPreferences prefs = context.getSharedPreferences(pack

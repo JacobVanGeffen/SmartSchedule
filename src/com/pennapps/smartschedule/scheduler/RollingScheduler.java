@@ -112,9 +112,8 @@ public class RollingScheduler {
 			Log.wtf("Intervals", "" + intervals);
 			
 			Duration dailyLimit = new Duration(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Duration.standardDays(1).getMillis()));		
-			Log.wtf("Daily Limit: ", "" + dailyLimit.getMillis());
 			for(Interval interval : intervals) {
-				if(dailyLimit.getMillis() == 0) break;
+				if(dailyLimit.getMillis() <= 0) break;
 				
 				Log.wtf("Interval comparisons:", interval.toDurationMillis() + " : " + settings.getMinimumLength().getMillis());
 				if(interval.toDurationMillis() > settings.getMinimumLength().getMillis()) {
@@ -123,7 +122,7 @@ public class RollingScheduler {
 					eventTime = new Duration(eventTime.getMillis() - realDuration);
 					
 					String name = "";
-					if(part == 1 && eventTime.getMillis() == 0)
+					if(part == 1 && eventTime.getMillis() <= 0)
 						name = event.getName();
 					else
 						name = event.getName() + " (Part " + part + ")";

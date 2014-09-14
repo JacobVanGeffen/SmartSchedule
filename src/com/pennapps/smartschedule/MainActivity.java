@@ -2,6 +2,7 @@ package com.pennapps.smartschedule;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -22,6 +23,7 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -48,6 +50,7 @@ public class MainActivity extends Activity {
 
     public TextParser thing;
     protected TextToSpeech tts;
+    private boolean isEditMode = false;
     
     private OnClickListener listener = new OnClickListener() {
 
@@ -55,20 +58,50 @@ public class MainActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
             case R.id.rlAddTask:
-//            	testData();
-            	
+                if(isEditMode){
+//                    deleteTasks();
+                    endEditMode(true);
+                    return;
+                }
+                
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH); 
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
                 startActivityForResult(intent, RESULT_TAKEEVENT);
                 break;
-//                startActivityForResult(intent, RESULT_TAKEEVENT);
-//                ArrayList<String> stuff = new ArrayList<String>();
-//                stuff.add("Data structures project due Friday at 5 p.m. takes 5 hours 37 minutes");
-//                handleSpeechEvent(stuff);
-//                break;
             }
         }
     };
+    
+    private void endEditMode(boolean delete){
+        ((TextView)findViewById(R.id.tvAddTask)).setText("Add Task");
+        findViewById(R.id.rlAddTask).setBackgroundResource(R.drawable.add_task);
+        isEditMode = false;
+        
+        for(int a=taskViews.size()-1; a>=0; a--){
+            Log.wtf("Task", a+"");
+            if(delete && toDelete.contains(taskViews.get(a))){
+                Log.wtf("Task delete", a+" delete");
+                
+                StorageUtil.removeDuration(this, taskViews.get(a).getText()+"");
+                
+                ((LinearLayout)findViewById(R.id.llRecentTasks)).removeView(taskViews.get(a));
+                ((LinearLayout)findViewById(R.id.llRecentTasks)).removeView(splitViews.get(a));
+                
+                taskViews.remove(a);
+                splitViews.remove(a);
+            }else{
+                taskViews.get(a).setBackgroundResource(R.drawable.recent_task);
+            }
+        }
+    }
+    
+    private HashSet<View> toDelete;
+    private void startEditMode(){
+        isEditMode = true;
+        toDelete = new HashSet<View>();
+        ((TextView)findViewById(R.id.tvAddTask)).setText("Delete");
+        findViewById(R.id.rlAddTask).setBackgroundResource(R.drawable.delete_task);
+    }
 
     @Override
     public void onCreate(Bundle b) {
@@ -83,21 +116,37 @@ public class MainActivity extends Activity {
                 .createFromAsset(getAssets(), "Roboto-Light.ttf"));
         ((TextView) findViewById(R.id.tvAddTask)).setTypeface(Typeface
                 .createFromAsset(getAssets(), "Roboto-Light.ttf"));
-        loadRecentTasks();
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        // loadRecentTasks();
+        clearRecentTasks();
+        loadRecentTasks();
     }
     
+    private void clearRecentTasks(){
+        if(isEditMode)
+            endEditMode(false);
+        try{
+            taskViews.clear();
+            splitViews.clear();
+            toDelete.clear();
+        }catch(NullPointerException ex){}
+        ((LinearLayout)findViewById(R.id.llRecentTasks)).removeAllViews();
+    }
+    
+    ArrayList<TextView> taskViews;
+    ArrayList<View> splitViews;
     private void loadRecentTasks(){
+        taskViews = new ArrayList<TextView>();
+        splitViews = new ArrayList<View>();
+        
         LinearLayout layout = (LinearLayout) findViewById(R.id.llRecentTasks);
         for (final String task : StorageUtil.getRecentTasks(this)){
             if(task.contains("(Part"))
                 continue;
-            TextView taskView = new TextView(this);
+            final TextView taskView = new TextView(this);
             LinearLayout.LayoutParams taskParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
             taskParams.setMargins(20, 20, 20, 20);
             taskView.setText(task);
@@ -107,6 +156,19 @@ public class MainActivity extends Activity {
             taskView.setClickable(true);
             taskView.setOnClickListener(new OnClickListener() {
                 public void onClick(View v) {
+                    if(isEditMode){
+                        if(toDelete.contains(taskView)){
+                            toDelete.remove(taskView);
+                            taskView.setBackgroundResource(MainActivity.this
+                                    .getResources().getColor(android.R.color.transparent));
+                        }else{
+                            toDelete.add(taskView);
+                            taskView.setBackgroundColor(MainActivity.this
+                                    .getResources().getColor(R.color.transparent_light_red));
+                        }
+                        return;
+                    }
+                    
                     Period duration = StorageUtil.getDuration(MainActivity.this, task);
                     Log.wtf("Storage duration", duration+"");
                     handleScheduledEvent(new ScheduledEvent(task, null, // should be null (or ask the user)
@@ -123,6 +185,9 @@ public class MainActivity extends Activity {
             
             layout.addView(taskView);
             layout.addView(split);
+            
+            taskViews.add(taskView);
+            splitViews.add(split);
         }
     }
     
@@ -214,13 +279,27 @@ public class MainActivity extends Activity {
         else 
             Log.wtf("Duration", scheduledEvent.getDuration()+"");
         
+        SchedulingSettings settings = new SchedulingSettings(this);
+        settings.setSplittable(scheduledEvent.getDuration().getStandardHours() >= 2);
+        
+        if (settings.isSplittable()) {
+            List<Event> listEvents = RollingScheduler.scheduleSplit(cal,
+                    Day.today(), scheduledEvent, settings);
+            Collections.reverse(listEvents);
+            for (Event event : listEvents) {
+                cal.addEvent(event);
+                putEvent(event, false);
+            }
+            return;
+        }
+        
         Event event = RollingScheduler.scheduleFirst(cal, scheduledEvent,
-                new SchedulingSettings(this));
+                settings);
         
         if(event == null){
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
             dialog.setTitle("Cannot schedule task");
-            dialog.setMessage("No space available on calendar");
+            dialog.setMessage("No time available on calendar");
             dialog.setNegativeButton("Ok", null);
             dialog.show();
             return;
@@ -259,7 +338,7 @@ public class MainActivity extends Activity {
         if(setDur)
             StorageUtil.putDuration(this, event.getName(), Period
                 .millis((int) (event.getEnd().getMillis() - event.getStart().getMillis())));
-        startActivityForResult(EventPusher.insertEvent(event), RESULT_EVENTPUSHED);
+        startActivityForResult(EventPusher.insertEvent(event, this), RESULT_EVENTPUSHED);
     }
 
     private static final String[] options = { "Set Google account", // vals = ______@gmail.com
@@ -268,6 +347,8 @@ public class MainActivity extends Activity {
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
         for(String s : options)
             menu.add(s);
         return super.onCreateOptionsMenu(menu);
@@ -276,6 +357,19 @@ public class MainActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         AlertDialog.Builder builder = null;
+        
+        switch(item.getItemId()){
+        case R.id.action_edit:
+            if(isEditMode){
+                endEditMode(false);
+                break;
+            }
+            
+            Log.wtf("Action", "edit");
+            startEditMode();
+            break;
+        }
+        
         switch(getIndex(item.getTitle()+"")){
         case 0:
             builder = new AlertDialog.Builder(this);

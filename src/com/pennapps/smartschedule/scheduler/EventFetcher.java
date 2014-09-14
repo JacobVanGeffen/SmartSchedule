@@ -6,10 +6,11 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
+import android.util.Log;
 
 public class EventFetcher {
-	public static String TEST_ACCOUNT = "blacksmithgu@gmail.com";
-	public static String TEST_TYPE = "com.google";
+//	public static String TEST_ACCOUNT = "blacksmithgu@gmail.com";
+//	public static String TEST_TYPE = "com.google";
 	
 	private long calendarID;
 	private ContentResolver resolve;
@@ -63,7 +64,10 @@ public class EventFetcher {
 	}
 	
 	public SchedulingCalendar getCalendar() {
-		if(calendarID == -1) return null; // What are u doin
+		if(calendarID == -1){
+		    Log.wtf("What are", "u doin");
+		    return null; // What are u doin
+		}
 		
 		String query = "(" + Events.CALENDAR_ID + " = ?)";
 		
