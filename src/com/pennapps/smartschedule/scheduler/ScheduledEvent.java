@@ -11,6 +11,8 @@ public class ScheduledEvent {
 	public ScheduledEvent(String name, DateTime deadline, Duration dur) {
 		this.name = name;
 		this.deadline = deadline;
+		if(this.deadline == null)
+		    this.deadline = DateTime.now().plusYears(1000);
 		this.duration = dur;
 	}
 	

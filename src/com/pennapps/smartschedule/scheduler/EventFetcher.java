@@ -54,7 +54,7 @@ public class EventFetcher {
 				selection, selectionArgs, null);
 		
 		while(cur.moveToNext()) {
-		    Log.wtf("Calendar Provided", "" + cur.getLong(0) + ", " + cur.getString(1) + ", " + cur.getString(2));
+//		    Log.wtf("Calendar Provided", "" + cur.getLong(0) + ", " + cur.getString(1) + ", " + cur.getString(2));
 		    calendarID = cur.getLong(0);
 		    
 		    return calendarID;
@@ -84,7 +84,7 @@ public class EventFetcher {
 			
 			cal.addEvent(evnt);
 			
-			Log.wtf("Event Add", evnt.toString());
+//			Log.wtf("Event Add", evnt.toString());
 		}
 		
 		return cal;

@@ -12,6 +12,7 @@ import org.joda.time.Period;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -51,12 +53,12 @@ public class MainActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
             case R.id.rlAddTask:
-            	testData();
-            	/*
+//            	testData();
+            	
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH); 
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, "en-US");
                 startActivityForResult(intent, RESULT_TAKEEVENT);
-                */break;
+                break;
 //                startActivityForResult(intent, RESULT_TAKEEVENT);
 //                ArrayList<String> stuff = new ArrayList<String>();
 //                stuff.add("Data structures project due Friday at 5 p.m. takes 5 hours 37 minutes");
@@ -72,6 +74,8 @@ public class MainActivity extends Activity {
         // requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
+        Log.wtf("Infinity time", DateTime.now().plusYears(1000)+"");
+        
         findViewById(R.id.rlAddTask).setOnClickListener(listener);
         loadRecentTasks();
     }
@@ -113,6 +117,7 @@ public class MainActivity extends Activity {
         }
     }
     
+    @SuppressWarnings("unused")
     private void testData() {
         ScheduledEvent scheduledEvent = TextParser.getScheduledEvent("Data structures project due October 15th at 7 p.m. takes 7 hours and 53 minutes");
         
@@ -198,6 +203,8 @@ public class MainActivity extends Activity {
     }
     
     private void handleScheduledEvent(ScheduledEvent scheduledEvent){
+        Log.wtf("Scheduled deadline", scheduledEvent.getDeadline()+"") ;
+        
         EventFetcher fetch = new EventFetcher(getContentResolver(), getEmail());
         fetch.getCalendarID();
         SchedulingCalendar cal = fetch.getCalendar();
@@ -230,7 +237,11 @@ public class MainActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item){
         switch(getIndex(item.getTitle()+"")){
         case 0:
-            new Dialog(this).show();
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            EditText text = new EditText(this);
+            
+            builder.setTitle("Google Account");
+            builder.setView(text);
             return true;
         case 1:
             return true;

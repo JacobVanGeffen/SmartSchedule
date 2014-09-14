@@ -114,10 +114,10 @@ public class TextParser {
      * @return
      */
     private static DateTime interpretDeadline(String deadline) {
-        Log.wtf("Deadline", deadline);
+//        Log.wtf("Deadline", deadline);
         DateTime ret = DateTime.now(), orig = ret;
 
-        Log.wtf("orig", orig + "");
+//        Log.wtf("orig", orig + "");
 
         deadline = deadline.toLowerCase().trim();
 
@@ -176,7 +176,7 @@ public class TextParser {
             ret = ret.withDayOfMonth(monthDay(deadline));
         }
 
-        Log.wtf("ret", ret + "");
+//        Log.wtf("ret", ret + "");
 
         return ret.equals(orig) ? null : ret;
     }
