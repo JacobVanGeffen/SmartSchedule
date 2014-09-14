@@ -1,21 +1,21 @@
 package com.pennapps.smartschedule.scheduler;
 
 import org.joda.time.DateTime;
-import org.joda.time.Period;
+import org.joda.time.Duration;
 
 public class ScheduledEvent {
 	private String name;
 	private DateTime deadline;
-	private Period duration;
+	private Duration duration;
 	
-	public ScheduledEvent(String name, DateTime deadline, Period dur) {
+	public ScheduledEvent(String name, DateTime deadline, Duration dur) {
 		this.name = name;
 		this.deadline = deadline;
 		this.duration = dur;
 	}
 	
 	public ScheduledEvent(String name) {
-		this(name, DateTime.now(), Period.minutes(30));
+		this(name, DateTime.now(), Duration.standardMinutes(30));
 	}
 	
 	public String getName() {
@@ -38,11 +38,11 @@ public class ScheduledEvent {
 		return this;
 	}
 	
-	public Period getDuration() {
+	public Duration getDuration() {
 		return duration;
 	}
 	
-	public ScheduledEvent setDuration(Period per) {
+	public ScheduledEvent setDuration(Duration per) {
 		this.duration = per;
 		
 		return this;

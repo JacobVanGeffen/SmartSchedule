@@ -3,6 +3,7 @@ package com.pennapps.smartschedule;
 import java.util.ArrayList;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Period;
 
 import android.annotation.SuppressLint;
@@ -240,7 +241,7 @@ public class TextParser {
         }
     }
 
-    private static Period time(String duration) {
+    private static Duration time(String duration) {
         Period period = Period.ZERO;
 
         if (duration.contains("second"))
@@ -260,7 +261,7 @@ public class TextParser {
                     .substring(0, duration.indexOf("day")).trim()
                     .replaceAll(".* ", "")));
 
-        return period.equals(Period.ZERO) ? null : period;
+        return period.equals(Period.ZERO) ? null : period.toStandardDuration();
     }
 
 }

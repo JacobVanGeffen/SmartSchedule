@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Period;
 
 import android.accounts.Account;
@@ -104,7 +105,7 @@ public class MainActivity extends Activity {
                             DateTime.now()), scheduledEvent.getName()));
         }
 
-        boolean split = false;
+        boolean split = true;
         
         if(split) {
 	        List<Event> events = RollingScheduler.scheduleSplit(cal, Day.today(), scheduledEvent,
@@ -213,11 +214,11 @@ public class MainActivity extends Activity {
         return -1;
     }
     
-    private static Period getDuration(List<Event> events, String event){
+    private static Duration getDuration(List<Event> events, String event){
         Collections.reverse(events);
         for(Event e : events){
             if(e.getName().equals(event))
-                return Period.millis((int) (e.getEnd().getMillis() - e.getStart().getMillis()));
+                return Duration.millis((int) (e.getEnd().getMillis() - e.getStart().getMillis()));
         }
         return null;
     }

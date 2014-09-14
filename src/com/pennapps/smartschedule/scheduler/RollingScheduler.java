@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.Period;
+import org.joda.time.Duration;
 
 import android.util.Log;
 
@@ -29,13 +30,12 @@ public class RollingScheduler {
 			}
 			
 			List<Interval> intervals = calendar.getAvailableIntervals(dailyStart, dailyStop); // TODO: Be the events deadline.
-			for(Interval ints : intervals)
-			    Log.wtf("RollingScheduler getScheduleIntervals", "" + ints.toDurationMillis());
+			
 			for(Interval i : intervals) {
-				if(i.toPeriod().getMillis() >= nextEvent.getDuration().getMillis())
+				if(i.toDuration().getMillis() >= nextEvent.getDuration().getMillis())
 				{
 					DateTime evnt_start = i.getStart();
-					DateTime evnt_stop = evnt_start.plusMillis((int) (i.toPeriod().getMillis() - nextEvent.getDuration().getMillis()));
+					DateTime evnt_stop = evnt_start.plusMillis((int) (i.toDuration().getMillis() - nextEvent.getDuration().getMillis()));
 				
 					times.add(new Interval(evnt_start, evnt_stop));
 				}
@@ -49,8 +49,7 @@ public class RollingScheduler {
 	
 	public static Event scheduleFirst(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
 		List<Interval> intervals = getScheduleIntervals(calendar, start, event, settings);
-		for(Interval in : intervals)
-		    Log.wtf("RollingScheduler", "" + in.toDurationMillis());
+		
 		DateTime realStart = intervals.get(0).getStart();
 		
 		Event realEvent = new Event(-1L, event.getName(), realStart, realStart.plus(event.getDuration()));
@@ -64,41 +63,60 @@ public class RollingScheduler {
 	public static List<Event> scheduleSplit(SchedulingCalendar calendar, Day start, ScheduledEvent event, SchedulingSettings settings) {
 		List<Event> events = new ArrayList<Event>();
 		
-		Period eventTime = event.getDuration();
+		Duration eventTime = event.getDuration();
+		Log.wtf("Event Time", "" + eventTime.getMillis());
 		
 		int part = 1;
 		
 		Day current = start;
 		Day stop = new Day(event.getDeadline());
 		while(current.compareTo(stop) <= 0 && eventTime.getMillis() > 0) {
-			List<Interval> intervals = calendar.getAvailableIntervals(current.getCalcStart(), current.getCalcStop(event.getDeadline()));
+			DateTime e_start = current.getCalcStart();
+			DateTime e_stop = current.getCalcStop(event.getDeadline());
 			
-			Period dailyLimit = new Period(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Period.days(1).getMillis()));		
+			Log.wtf("Day Test", "" + e_start + " : " + e_stop);
+			
+			if(e_start.isAfter(e_stop)) {
+				current = current.next();
+				continue;
+			}
+			
+			Log.wtf("Day Test Passed", "Passed, moving on with intervals.");
+			
+			List<Interval> intervals = calendar.getAvailableIntervals(e_start, e_stop);
+			Log.wtf("Intervals", "" + intervals);
+			
+			Duration dailyLimit = new Duration(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Duration.standardDays(1).getMillis()));		
+			Log.wtf("Daily Limit: ", "" + dailyLimit.getMillis());
 			for(Interval interval : intervals) {
 				if(dailyLimit.getMillis() == 0) break;
 				
-				if(interval.toDuration().isLongerThan(settings.getMinimumLength().toStandardDuration())) {
+				Log.wtf("Interval comparisons:", interval.toDurationMillis() + " : " + settings.getMinimumLength().getMillis());
+				if(interval.toDurationMillis() > settings.getMinimumLength().getMillis()) {
 					long realDuration = Math.min(dailyLimit.getMillis(), interval.toDurationMillis());
-					dailyLimit = new Period(dailyLimit.getMillis() - realDuration);
-					eventTime = new Period(eventTime.getMillis() - realDuration);
+					dailyLimit = new Duration(dailyLimit.getMillis() - realDuration);
+					eventTime = new Duration(eventTime.getMillis() - realDuration);
 					
 					Event eventFragment = new Event(-1, event.getName() + " (Part " + part + ")", interval.getStart(), 
 							interval.getStart().plus(realDuration));
+					part++;
 					
 					events.add(eventFragment);
 				}
 			}
+			
+			current = current.next();
 		}
 		
 		return events;
 	}
 	
-	public static List<ScheduledEvent> split(ScheduledEvent event, int splits, Period minimumTime) {
+	public static List<ScheduledEvent> split(ScheduledEvent event, int splits, Duration minimumTime) {
 		List<ScheduledEvent> events = new ArrayList<ScheduledEvent>();
 		long millisPerSegment = event.getDuration().getMillis() / splits;
-		Period segmentLength = new Period(Math.max(minimumTime.getMillis(), millisPerSegment));
+		Duration segmentLength = new Duration(Math.max(minimumTime.getMillis(), millisPerSegment));
 		
-		Period remaining = event.getDuration();
+		Duration remaining = event.getDuration();
 		while(remaining.getMillis() > 0) {
 			ScheduledEvent evnt = new ScheduledEvent(event.getName(), event.getDeadline(), segmentLength);
 			remaining = remaining.minus(segmentLength);
@@ -110,6 +128,6 @@ public class RollingScheduler {
 	}
 	
 	public static List<ScheduledEvent> split(ScheduledEvent event, int splits) {
-		return split(event, splits, Period.millis(0));
+		return split(event, splits, Duration.millis(0));
 	}
 }
