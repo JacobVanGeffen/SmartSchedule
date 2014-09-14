@@ -97,7 +97,6 @@ public class RollingScheduler {
 		Day current = start;
 		Day stop = new Day(event.getDeadline());
 		
-		Duration runoverTime = new Duration(0L);
 		while(current.compareTo(stop) <= 0 && eventTime.getMillis() > 0) {
 			DateTime e_start = current.getCalcStart();
 			DateTime e_stop = current.getCalcStop(event.getDeadline());
@@ -109,8 +108,7 @@ public class RollingScheduler {
 			
 			List<Interval> intervals = calendar.getAvailableIntervals(e_start, e_stop);
 
-			Duration dailyLimit = new Duration(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Duration.standardDays(1).getMillis()))
-									.plus(runoverTime);		
+			Duration dailyLimit = new Duration(Math.min(eventTime.getMillis(), settings.isLoadBalanced() ? settings.getMaximumLength().getMillis() : Duration.standardDays(1).getMillis()));	
 			for(Interval interval : intervals) {
 				if(dailyLimit.getMillis() <= 0) break;
 				
@@ -126,7 +124,6 @@ public class RollingScheduler {
 				}
 			}
 			
-			runoverTime = dailyLimit;
 			current = current.next();
 		}
 		
